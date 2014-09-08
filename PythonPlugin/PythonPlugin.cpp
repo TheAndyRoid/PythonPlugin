@@ -76,7 +76,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	//Python
 	PyObject *pName, *pModule, *pFunc;
 
-	pName = PyString_FromString("baseGUI");
+	pName = PyString_FromString("TkinterGUI");
 
 	pyHasError();
 	pModule = PyImport_Import(pName);
@@ -84,7 +84,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 
 	if (pModule != NULL) {
-		pFunc = PyObject_GetAttrString(pModule, (char*) "guimain");
+		pFunc = PyObject_GetAttrString(pModule, (char*) "run");
 		pyHasError();
 		/* pFunc is a new reference */
 
@@ -160,7 +160,7 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 
 	if (pModule != NULL) {
-		pFunc = PyObject_GetAttrString(pModule, (char*) "init");
+		pFunc = PyObject_GetAttrString(pModule, (char*) "playVideo");
 		pyHasError();
 		// pFunc is a new reference 
 

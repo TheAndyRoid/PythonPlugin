@@ -65,7 +65,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 	}
 
 	if (pyPlug->pImageSource->getImageSource() != NULL){
-		Py_INCREF(pyPlug->pImageSource->getImageSource());
+		//Py_INCREF(pyPlug->pImageSource->getImageSource());
 		return pyPlug->pImageSource->pyImgSrc;
 	}
 
@@ -110,7 +110,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 	
 	//set the object here
 	pyPlug->pImageSource->pyImgSrc = (PyObject*)self;
-	Py_INCREF(self);
+	//Py_INCREF(self);
 
 
 	return (PyObject*)self;
@@ -119,8 +119,6 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 static int
 pyImageSource_init(pyImageSource *self, PyObject *args, PyObject *kwds)
 {
-	
-	
 	/*Do nothing for now*/
 	return 0;
 }

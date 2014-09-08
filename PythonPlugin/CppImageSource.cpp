@@ -56,17 +56,29 @@ CppImageSource::~CppImageSource(){
 	pyImageSource* tmp = (pyImageSource*)pyImgSrc;
 	tmp->cppImageSource = NULL;
 
-	PyObject *stop = tmp->stop;
+
+	PyObject *stop;
+	stop = PyObject_GetAttrString(pyImgSrc, (char*) "stop");
 
 	if (stop != NULL && PyCallable_Check(stop)){
 		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
+		Py_DECREF(result);
 	}
 
+	Py_DECREF(stop);
+	
+	
+	PyObject *destr;
+	destr = PyObject_GetAttrString(pyImgSrc, (char*) "destructor");
 
+	if (destr != NULL && PyCallable_Check(stop)){
+		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
+		Py_DECREF(result);
+	}
+	Py_DECREF(destr);
+	
 
-
-
-
+	Py_XDECREF(pyRender);
 	Py_XDECREF(pyImgSrc);
 	
 	
@@ -131,7 +143,10 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 			return;
 		}
-		pyRender = ((pyImageSource*)pyImgSrc)->render;
+
+
+		pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "render");
+		//pyRender = ((pyImageSource*)pyImgSrc)->render;
 		if (pyRender != NULL && PyCallable_Check(pyRender)){
 			
 		}else{
@@ -181,7 +196,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	Py_DECREF(argList);
 
 
-	argList = Py_BuildValue("(OOO)", pyPos,pySize,pyImgSrc);
+	argList = Py_BuildValue("(OOO)", pyImgSrc, pyPos, pySize, pyImgSrc);
 	PyObject *result = PyObject_CallObject(pyRender, argList);
 
 
