@@ -8,7 +8,9 @@
 
 #include "OBSApi.h"
 #include "Localization.h"
+#include "utils.h"
 #include "CppImageSource.h"
+
 
 
 

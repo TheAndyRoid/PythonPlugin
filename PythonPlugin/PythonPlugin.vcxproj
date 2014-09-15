@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Noddy.h" />
+    <ClInclude Include="PyXElement.h" />
     <ClInclude Include="PyVect2.h" />
     <ClInclude Include="Localization.h" />
     <ClInclude Include="CppAudioSource.h" />
@@ -31,6 +32,7 @@
     <ClInclude Include="PyScene.h" />
     <ClInclude Include="PythonPlugin.h" />
     <ClInclude Include="CppImageSource.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CppAudioSource.cpp" />

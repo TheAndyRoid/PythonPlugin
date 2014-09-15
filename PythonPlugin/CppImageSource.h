@@ -30,6 +30,7 @@ private:
 	Texture* MakeTexture();
 	GSColorFormat texFormat = GS_BGRA;
 	GSImageFormat imgFormat = GS_IMAGEFORMAT_BGRA;
+	int imgDepth = 4;
 
 	
 
@@ -57,8 +58,9 @@ public:
 	Vect2 pos;
 	Vect2 size;
 
-	void setupDoubleBuffers(void *A, void *b);
-	void setupSingleBuffer(void* A, char *);
+	int getBytesPerPixel(){ return imgDepth; };
+	void setupDoubleBuffers(void *A, void *b, long width, long height);
+	void setupSingleBuffer(void* A, long width, long height);
 	bool setupFormats(char *format);
 
 

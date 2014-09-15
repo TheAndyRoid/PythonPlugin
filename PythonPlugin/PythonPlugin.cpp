@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <cstdlib>
 #include "PyOBS.h"
-
+#include "PyXElement.h"
 
 
 
@@ -17,26 +17,6 @@ PythonPlugin *PythonPlugin::instance = NULL;
 
 
 
-
-bool pyHasError(){
-	bool ret = false;
-	if (PyErr_Occurred()){
-		ret = true;
-		PyObject *ptype, *pvalue, *ptraceback;
-		PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-		char * cstr = PyString_AsString(pvalue);
-		wchar_t wstr[200];
-		mbstowcs(&*wstr, cstr, sizeof(wstr));
-		Log(TEXT("Python Error: %ls"), wstr);
-		Py_DECREF(pvalue);
-		Py_DECREF(ptype);
-		Py_DECREF(ptraceback);
-	}
-	
-	return ret;
-}
-
-
 bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 {
 
@@ -45,7 +25,10 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	XElement *dataElement = element->GetElement(TEXT("data"));
 
 
-	
+	bool isMissingDataElement;
+	if (isMissingDataElement = !dataElement) {
+		dataElement = element->CreateElement(TEXT("data"));
+	}
 
 	
 
@@ -76,20 +59,50 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	//Python
 	PyObject *pName, *pModule, *pFunc;
 
-	pName = PyString_FromString("TkinterGUI");
 
+	pName = PyString_FromString("selectionGUI");
+	//pName = PyString_FromString("baseGUI");
 	pyHasError();
-	pModule = PyImport_Import(pName);
-	pyHasError();
+
+
+	PyObject *dict = PyImport_GetModuleDict();
+	if (!PyDict_Contains(dict, pName)){
+		pModule = PyImport_Import(pName);
+	}
+	else{
+		pModule = PyDict_GetItem(dict, pName);
+		pModule = PyImport_ReloadModule(pModule);
+	}
+
+
+	
+	if (pyHasError()){
+		Py_XDECREF(pName);
+		return false;
+	}
 
 
 	if (pModule != NULL) {
-		pFunc = PyObject_GetAttrString(pModule, (char*) "run");
-		pyHasError();
-		/* pFunc is a new reference */
+		pFunc = PyObject_GetAttrString(pModule, (char*) "gui");
+		//pFunc = PyObject_GetAttrString(pModule, (char*) "guimain");
 
 		if (pFunc && PyCallable_Check(pFunc)) {
-			PyObject_CallObject(pFunc, NULL);
+			PyObject *argList = Py_BuildValue("");
+			PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
+			Py_XDECREF(argList);
+			((PyXElement*)pyConfig)->element = dataElement;
+
+			argList = Py_BuildValue("(O)", pyConfig);
+			PyObject_CallObject(pFunc, argList);			
+
+			if (pyHasError()){
+				Py_XDECREF(pModule);
+				Py_XDECREF(pName);
+				Py_XDECREF(pyConfig);
+				PyGILState_Release(gstate);
+				return false;
+			}
+			Py_XDECREF(pyConfig);
 
 
 		}
@@ -97,6 +110,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 
 		}
+		
 		Py_DECREF(pFunc);
 	}
 	else {
@@ -105,8 +119,8 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 	}
 
-	Py_DECREF(pModule);
-	Py_DECREF(pName);
+	Py_XDECREF(pModule);
+	Py_XDECREF(pName);
 	
 
 	PyGILState_Release(gstate);
@@ -151,44 +165,60 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	
 	//Python
 	PyObject *pName, *pModule, *pFunc;
+	pyImageSource *pyImgSrc;
 
 	pName = PyString_FromString("playvideoClass");
 
 	pyHasError();
 	pModule = PyImport_Import(pName);
 	pyHasError();
-
+	bool pyObjectCreated = false;
 
 	if (pModule != NULL) {
 		pFunc = PyObject_GetAttrString(pModule, (char*) "playVideo");
 		pyHasError();
 		// pFunc is a new reference 
-
 		if (pFunc && PyCallable_Check(pFunc)) {
-			PyObject_CallObject(pFunc, NULL);
+			//pass in config
+			PyObject *argList = Py_BuildValue("");
+			PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
+			Py_XDECREF(argList);
+			((PyXElement*)pyConfig)->element = data;
+			argList = Py_BuildValue("(O)",pyConfig);
+			pyImgSrc = (pyImageSource*)PyObject_CallObject(pFunc, argList);
+			if (!pyHasError()){
+				pyImgSrc->cppImageSource = pyPlug->pImageSource;
+				pyPlug->pImageSource->pyImgSrc = (PyObject*)pyImgSrc;
+				pyObjectCreated = true;
+			}
+			Py_XDECREF(argList);
+
 		}
 		else {			
 		}
 		
-		Py_DECREF(pFunc);
+		Py_XDECREF(pFunc);
 	}
 	else {
 		PyErr_Print();
 	}
 
 	
-	Py_DECREF(pModule);
-	Py_DECREF(pName);
+	Py_XDECREF(pModule);
+	Py_XDECREF(pName);
 	
 	
-	
-	PyRun_SimpleString("print 'test'");
+
 
 	PyGILState_Release(gstate);
 
 	//ReleaseMutex(pyPlug->ghMutex);
-	
-	return pyPlug->pImageSource;
+	if (pyObjectCreated){
+		return pyPlug->pImageSource;
+	}
+	else{
+		return NULL;
+	}
 }
 
 
@@ -238,10 +268,11 @@ PythonPlugin::PythonPlugin()
 	initOBS();
 
 
-	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("import sys,os");
 	PyRun_SimpleString("sys.path.append(\"./plugins/Python\")");
 	PyRun_SimpleString("sys.stdout = open('./plugins/Python/pyOut.txt','w',0)");
 	PyRun_SimpleString("sys.stderr = open('./plugins/Python/pyErr.txt','w',0)");
+	
 	
 
 	/*PyRun_SimpleString("import OBS\n",
@@ -263,41 +294,7 @@ PythonPlugin::PythonPlugin()
 }
 
 
-void PythonPlugin::initPython(){
 
-	Py_Initialize();
-	PyEval_InitThreads();
-
-
-
-	/*Must set arguments for gui to work*/
-	char *argv[] = { "OBS", NULL };
-	int argc = sizeof(argv) / sizeof(char*) - 1;
-	PySys_SetArgv(argc, argv);
-
-
-
-	//Load the OBS Extension
-	initOBS();
-
-
-	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append(\"./plugins/Python\")");
-	PyRun_SimpleString("sys.stdout = open('./plugins/Python/pyOut.txt','w',0)");
-	PyRun_SimpleString("sys.stderr = open('./plugins/Python/pyErr.txt','w',0)");
-
-
-	/*PyRun_SimpleString("import OBS\n",
-	"import sys\n"
-	"from PySide import QtGui, QtCore\n"
-	"import ctypes\n"
-	"app = QtGui.QApplication('')\n"
-	);*/
-
-	PyThreadState *pts = PyGILState_GetThisThreadState();
-	PyEval_ReleaseThread(pts);
-
-}
 
 void PythonPlugin::finPython(){
 	

@@ -11,6 +11,7 @@
 
 
 
+
 CppImageSource::CppImageSource(XElement *data)
 {
 	Log(TEXT("Python Source Constructor"));
@@ -62,7 +63,7 @@ CppImageSource::~CppImageSource(){
 
 	if (stop != NULL && PyCallable_Check(stop)){
 		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
-		Py_DECREF(result);
+		Py_XDECREF(result);
 	}
 
 	Py_DECREF(stop);
@@ -160,7 +161,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	}
 	
 
-	Log(TEXT("Render"));
+	//Log(TEXT("Render"));
 
 	//PyObject *obj = py_CreateVect2(size);
 	PyObject * OBSModule = PyImport_ImportModule("OBS");
@@ -198,7 +199,11 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 	argList = Py_BuildValue("(OOO)", pyImgSrc, pyPos, pySize, pyImgSrc);
 	PyObject *result = PyObject_CallObject(pyRender, argList);
-
+	
+	if (pyHasError()){
+		PyGILState_Release(gstate);
+		return;
+	}
 
 	
 	//Py_DECREF(argList);
@@ -225,7 +230,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	if (texture){
 		//getImageFromPython();
 		if (getFrontBuffer() != NULL){
-			texture->SetImage(getFrontBuffer(), imgFormat, texture->Width() * 4);
+			texture->SetImage(getFrontBuffer(), imgFormat, texture->Width() * imgDepth);
 			//Draw the texture
 			//Top left and bottum right coords
 			DrawSprite(texture, 0xFFFFFFFF, pos.x, pos.y, pos.x + size.x, size.y + pos.y);
@@ -394,22 +399,26 @@ void CppImageSource::getImageFromPython(){
 	 }
  }
 
- void CppImageSource::setupDoubleBuffers(void *A, void *B){
+ void CppImageSource::setupDoubleBuffers(void *A, void *B,long width, long height){
 	 this->pixelA = A;
 	 this->pixelB = B;
 	 this->pixelFront = this->pixelA;
 	 this->isDoubleBuffer = true;
+	 imageSize.x = width;
+	 imageSize.y = height;
 	 this->texture = MakeTexture();
 
  }
 
 
 
- void CppImageSource::setupSingleBuffer(void *A, char *){
+ void CppImageSource::setupSingleBuffer(void *A, long width,long height){
 	 this->pixelA = A;
+	 this->pixelB = A;
 	 this->pixelFront = this->pixelA;
 	 this->isDoubleBuffer = false;
-
+	 imageSize.x = width;
+	 imageSize.y = height;
 	 this->texture = MakeTexture();
 
  }
@@ -418,32 +427,38 @@ void CppImageSource::getImageFromPython(){
 
 
  bool CppImageSource::setupFormats(char* format){
-	 if (strcmp(format, "ALPHA") == 0){
+	 if (strcmp(format, "A") == 0){
 		 texFormat = GS_ALPHA;
 		 imgFormat = GS_IMAGEFORMAT_A8;
+		 imgDepth = 1;
 	 }
 	
-	 else if (strcmp(format, "GRAYSCALE") == 0){
+	 else if (strcmp(format, "L") == 0){
 		 texFormat = GS_GRAYSCALE;
 		 imgFormat = GS_IMAGEFORMAT_L8;
+		 imgDepth = 1;
 	 }
 	 else if (strcmp(format, "RGB") == 0){
 
 		 texFormat = GS_RGB;
 		 imgFormat = GS_IMAGEFORMAT_RGB;
+		 imgDepth = 3;
 	 }
 	 else if (strcmp(format, "RGBA") == 0){
 
 		 texFormat = GS_RGBA;
 		 imgFormat = GS_IMAGEFORMAT_RGBA;
+		 imgDepth = 4;
 	 }
 	 else if (strcmp(format, "BGR") == 0){
 		 texFormat = GS_BGR;
 		 imgFormat = GS_IMAGEFORMAT_BGR;
+		 imgDepth = 3;
 	 }
 	 else if (strcmp(format, "BGRA") == 0){
 		 texFormat = GS_BGRA;
 		 imgFormat = GS_IMAGEFORMAT_BGRA;
+		 imgDepth = 4;
 	 }
 	 else{
 		 return false;	 

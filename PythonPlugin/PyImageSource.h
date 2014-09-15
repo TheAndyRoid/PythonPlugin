@@ -64,10 +64,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 		return NULL;
 	}
 
-	if (pyPlug->pImageSource->getImageSource() != NULL){
-		//Py_INCREF(pyPlug->pImageSource->getImageSource());
-		return pyPlug->pImageSource->pyImgSrc;
-	}
+
 
 	self = (pyImageSource*)type->tp_alloc(type, 0);
 
@@ -80,7 +77,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 			return NULL;
 		}
 		self->cppImageSource = pyPlug->pImageSource;
-
+		
 		
 		
 		
@@ -109,7 +106,6 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 	}
 	
 	//set the object here
-	pyPlug->pImageSource->pyImgSrc = (PyObject*)self;
 	//Py_INCREF(self);
 
 
@@ -145,9 +141,9 @@ static PyObject * pyImageSource_FlipBuffers(pyImageSource *self){
 static PyObject * pyImageSource_GetAddrBackBuffer(pyImageSource *self){
 	
 	if (self->cppImageSource == NULL){
-		return PyInt_FromLong((long)PyByteArray_AsString(self->bufferA));
+		return PyLong_FromLong((long)PyByteArray_AsString(self->bufferA));
 	}else{
-		return PyInt_FromLong((long)self->cppImageSource->getBackBuffer());
+		return PyLong_FromLong((long)self->cppImageSource->getBackBuffer());
 	}
 }
 
@@ -177,12 +173,12 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	PyObject *bufA,*bufB,*format;
 
 	CppImageSource* cimg = self->cppImageSource;
-	
+	long width, height;
 	long argLength = PyTuple_Size(args);
 	bool doubleBuffer;
-	if (argLength == 3){
+	if (argLength == 5){
 		doubleBuffer = TRUE;
-	}else if(argLength = 2){
+	}else if(argLength == 4){
 		doubleBuffer = FALSE;
 	}
 	else{				
@@ -191,7 +187,9 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	}
 
 	if (doubleBuffer){
-		PyArg_ParseTuple(args, "OOO:set_callback", &bufA, &bufB,&format);
+		if (!PyArg_ParseTuple(args, "OOOll:set_callback", &bufA, &bufB, &format, &width, &height)){
+			return NULL;
+		}
 		if (!PyByteArray_Check(bufA)){
 			PyErr_SetString(PyExc_TypeError, "Argument 1 must be a Python bytearray compatable object");
 			return NULL;
@@ -210,47 +208,82 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 			PyErr_SetString(PyExc_TypeError, "Unknow buffer format");
 			return NULL;
 		}
+
+		int bitdepth = cimg->getBytesPerPixel();
+
+		//check that the buffers are large enough 
+		long bufsize = PyByteArray_Size(bufA);
+
+		if (bufsize < bitdepth*width*height){
+			PyErr_SetString(PyExc_TypeError, "Attempted to use undersized buffer for bufferA");
+			return NULL;
+		}
+		bufsize = PyByteArray_Size(bufB);
+		if (bufsize < bitdepth*width*height){
+			PyErr_SetString(PyExc_TypeError, "Attempted to use undersized buffer for bufferB");
+			return NULL;
+		}
+
+		
 	
 		
-		//Py_DECREF(self->bufferA);
+		Py_XDECREF(self->bufferA);
 		Py_INCREF(bufA);
-		self->bufferA = bufA;
-		
+		self->bufferA = bufA;	
 
 
-		//Py_DECREF(self->bufferB);
+		Py_XDECREF(self->bufferB);
 		Py_INCREF(bufB);
 		self->bufferB = bufB;
 		
-
-
-		cimg->setupDoubleBuffers(PyByteArray_AsString(bufA), PyByteArray_AsString(bufB));
-
-
+		Py_XDECREF(self->formatString);
 		Py_INCREF(format);
 		self->formatString = format;
 
 
+		cimg->setupDoubleBuffers(PyByteArray_AsString(bufA), PyByteArray_AsString(bufB),width,height);
 
-		
 	}
 	else{
-		PyArg_ParseTuple(args, "OO:set_callback", &bufA, &format);
+		if (!PyArg_ParseTuple(args, "OOll:set_callback", &bufA, &format, &width, &height)){
+			return NULL;
+		}
 		if (!PyByteArray_Check(bufA)){
 			PyErr_SetString(PyExc_TypeError, "Argument 1 must be a Python bytearray compatable object");
 			return NULL;
 		}
+
 		if (!PyString_Check(format)){
 			PyErr_SetString(PyExc_TypeError, "Argument 2 must be a Python string object"); 
 			return NULL;
 		}	
 
-		///check string format here
+	    //check string format here
 		if (!cimg->setupFormats(PyString_AsString(format))){
 			PyErr_SetString(PyExc_TypeError, "Unknow buffer format");
 			return NULL;
 		}
 		
+		int bitdepth = cimg->getBytesPerPixel();
+		//check that the buffers are large enough 
+		long bufsize = PyByteArray_Size(bufA);
+
+		if (bufsize < bitdepth*width*height){
+			PyErr_SetString(PyExc_TypeError, "Attempted to use undersized buffer");
+			return NULL;
+		}
+		
+
+		Py_XDECREF(self->formatString);
+		Py_INCREF(format);
+		self->formatString = format;
+
+		Py_XDECREF(self->bufferA);
+		Py_XDECREF(self->bufferB);
+		Py_INCREF(bufA);
+		self->bufferA = bufA;
+
+		cimg->setupSingleBuffer(PyByteArray_AsString(bufA), width, height);
 
 
 	}

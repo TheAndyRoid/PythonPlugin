@@ -1,6 +1,6 @@
 #pragma once
 
-#define MS_COREDLL
+
 #include <Python.h>
 #include "structmember.h"
 
@@ -18,7 +18,7 @@ typedef struct {
 static void
 PyVect2_dealloc(PyVect2Object* self)
 {
-	Py_XDECREF(self->x);
+	Py_XDECREF(self->y);
 	Py_XDECREF(self->x);
 	self->ob_type->tp_free((PyObject*)self);
 }

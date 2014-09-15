@@ -11,6 +11,8 @@
 
 #include "PyVect2.h"
 #include "PyImageSource.h"
+#include "PyXElement.h"
+
 
 
 
@@ -187,33 +189,56 @@ py_GetImageSource(PyObject *self, PyObject *args){
 	return imgsrc;
 }
 
+static PyObject *
+py_OBSLog(PyObject *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
 
+	PyObject *str;
+
+	if (!PyArg_ParseTuple(args, "O", &str)){
+		return NULL;
+	}
+	wchar_t *wstr = pyObjectToWSTR(str);
+	if (wstr == NULL){
+		return NULL;
+	}
+	Log(TEXT("Python: %ls"),wstr);
+	delete [] wstr;
+	
+	
+	return Py_BuildValue("");
+}
 
 
 
 static PyMethodDef pyOBS_methods[] = {
-		{ "OBSGetAPIVersion", py_OBSGetAPIVersion, METH_VARARGS, "Gets OBS API version" },
-		{ "OBSGetSceneName", py_OBSGetSceneName, METH_VARARGS, "Gets OBS scene name" },
-		{ "OBSGetBaseSize", py_OBSGetBaseSize, METH_VARARGS, "Get the base scene size " },
-		{ "OBSGetRenderFrameSize", py_OBSGetRenderFrameSize, METH_VARARGS, "Get the render frame size " },
-		{ "OBSGetOutputSize", py_OBSGetOutputSize, METH_VARARGS, "Get the stream output size " },
-		{ "OBSGetMaxFPS", py_OBSGetMaxFPS, METH_VARARGS, "Get the max FPS " },
-		{ "OBSGetCaptureFPS", py_OBSGetCaptureFPS, METH_VARARGS, "Get the capture FPS " },
-		{ "OBSGetTotalFrames", py_OBSGetTotalFrames, METH_VARARGS, "Get total number of frames " },
-		{ "OBSGetFramesDropped", py_OBSGetFramesDropped, METH_VARARGS, "Get number of dropped frames " },
-		{ "OBSGetLanguage", py_OBSGetLanguage, METH_VARARGS, "Get language of OBS" },
-		{ "OBSGetMainWindow", py_OBSGetMainWindow, METH_VARARGS, "Get HWNDID for OBS main window" },
-		{ "OBSGetAppDataPath", py_OBSGetAppDataPath, METH_VARARGS, "Get App data path" },
-		{ "OBSGetPluginDataPath", py_OBSGetPluginDataPath, METH_VARARGS, "Get Plugin data path" },
-		{ "OBSGetTotalStreamTime", py_OBSGetTotalStreamTime, METH_VARARGS, "Get stream time" },
-		{ "OBSGetBytesPerSec", py_OBSGetBytesPerSec, METH_VARARGS, "Get bytes per second" },
-		{ "OBSGetAppPath", py_OBSGetAppPath, METH_VARARGS, "Get application path" },
-		{ "OBSGetVersion", py_OBSGetVersion, METH_VARARGS, "Gets OBS version" },
-		{ "OBSGetAudioTime", py_OBSGetAudioTime, METH_VARARGS, "Gets Audio Time" },
-		{ "OBSStartStopStream", py_OBSStartStopStream, METH_VARARGS, "Starts or Stops Stream" },
-		{ "OBSStartStopPreview", py_OBSStartStopPreview, METH_VARARGS, "Starts or Stops Preview" },
-		{ "OBSStartStopRecording", py_OBSStartStopRecording, METH_VARARGS, "Starts or Stops Recording" },
-		{ "OBSGetImageSource", py_GetImageSource, METH_VARARGS, "Gets the imagesource python object" },
+		{ "GetAPIVersion", py_OBSGetAPIVersion, METH_VARARGS, "Gets OBS API version" },
+		{ "GetSceneName", py_OBSGetSceneName, METH_VARARGS, "Gets OBS scene name" },
+		{ "GetBaseSize", py_OBSGetBaseSize, METH_VARARGS, "Get the base scene size " },
+		{ "GetRenderFrameSize", py_OBSGetRenderFrameSize, METH_VARARGS, "Get the render frame size " },
+		{ "GetOutputSize", py_OBSGetOutputSize, METH_VARARGS, "Get the stream output size " },
+		{ "GetMaxFPS", py_OBSGetMaxFPS, METH_VARARGS, "Get the max FPS " },
+		{ "GetCaptureFPS", py_OBSGetCaptureFPS, METH_VARARGS, "Get the capture FPS " },
+		{ "GetTotalFrames", py_OBSGetTotalFrames, METH_VARARGS, "Get total number of frames " },
+		{ "GetFramesDropped", py_OBSGetFramesDropped, METH_VARARGS, "Get number of dropped frames " },
+		{ "GetLanguage", py_OBSGetLanguage, METH_VARARGS, "Get language of OBS" },
+		{ "GetMainWindow", py_OBSGetMainWindow, METH_VARARGS, "Get HWNDID for OBS main window" },
+		{ "GetAppDataPath", py_OBSGetAppDataPath, METH_VARARGS, "Get App data path" },
+		{ "GetPluginDataPath", py_OBSGetPluginDataPath, METH_VARARGS, "Get Plugin data path" },
+		{ "GetTotalStreamTime", py_OBSGetTotalStreamTime, METH_VARARGS, "Get stream time" },
+		{ "GetBytesPerSec", py_OBSGetBytesPerSec, METH_VARARGS, "Get bytes per second" },
+		{ "GetAppPath", py_OBSGetAppPath, METH_VARARGS, "Get application path" },
+		{ "GetVersion", py_OBSGetVersion, METH_VARARGS, "Gets OBS version" },
+		{ "GetAudioTime", py_OBSGetAudioTime, METH_VARARGS, "Gets Audio Time" },
+		{ "StartStopStream", py_OBSStartStopStream, METH_VARARGS, "Starts or Stops Stream" },
+		{ "StartStopPreview", py_OBSStartStopPreview, METH_VARARGS, "Starts or Stops Preview" },
+		{ "StartStopRecording", py_OBSStartStopRecording, METH_VARARGS, "Starts or Stops Recording" },
+		{ "GetImageSource", py_GetImageSource, METH_VARARGS, "Gets the imagesource python object" },
+		{ "Log", py_OBSLog, METH_VARARGS, "Writes to the OBS log" },
 		{ NULL, NULL, 0, NULL }
 };
 
@@ -236,6 +261,12 @@ initOBS(void)
 		return;
 	Py_INCREF(&PyVect2_Object);
 	PyModule_AddObject(m, "Vect2", (PyObject *)&PyVect2_Object);
+
+
+	if (PyType_Ready(&PyXElement_Object) < 0)
+		return;
+	Py_INCREF(&PyXElement_Object);
+	PyModule_AddObject(m, "XElement", (PyObject *)&PyXElement_Object);
 
 
 }
