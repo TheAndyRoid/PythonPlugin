@@ -54,37 +54,48 @@ CppImageSource::~CppImageSource(){
 
 
 
-	pyImageSource* tmp = (pyImageSource*)pyImgSrc;
-	tmp->cppImageSource = NULL;
+		
+	PyObject *stop = NULL;
+	if (pyImgSrc != NULL){
+		stop = PyObject_GetAttrString(pyImgSrc, (char*)"stop");
+		pyHasError();
+	}
+	else{
+		stop == NULL;
+	}
 
-
-	PyObject *stop;
-	stop = PyObject_GetAttrString(pyImgSrc, (char*) "stop");
+	
+	
 
 	if (stop != NULL && PyCallable_Check(stop)){
 		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
 		Py_XDECREF(result);
 	}
 
-	Py_DECREF(stop);
+	Py_XDECREF(stop);
 	
 	
 	PyObject *destr;
-	destr = PyObject_GetAttrString(pyImgSrc, (char*) "destructor");
+	if (pyImgSrc != NULL){
+		destr = PyObject_GetAttrString(pyImgSrc, (char*) "destructor");
+	}else{
+		destr = NULL;
+	}
 
 	if (destr != NULL && PyCallable_Check(stop)){
 		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
-		Py_DECREF(result);
+		Py_XDECREF(result);
 	}
-	Py_DECREF(destr);
+	Py_XDECREF(destr);
 	
 
 	Py_XDECREF(pyRender);
+
+	pyImageSource* tmp = (pyImageSource*)pyImgSrc;
+	tmp->cppImageSource = NULL;
 	Py_XDECREF(pyImgSrc);
 	
 	
-	
-	pyPlug->pImageSource = NULL;
 	pyRender = NULL;
 	pyImgSrc = NULL;
 	Log(TEXT("Python Source Destructor"));
@@ -150,8 +161,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 		//pyRender = ((pyImageSource*)pyImgSrc)->render;
 		if (pyRender != NULL && PyCallable_Check(pyRender)){
 			
-		}else{
-			
+		}else{			
 			pyRender = NULL;
 			Log(TEXT("rendercallback not callable"));
 			PyGILState_Release(gstate);

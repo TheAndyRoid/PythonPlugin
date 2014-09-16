@@ -126,3 +126,56 @@ static bool pyHasError(){
 }
 
 
+
+static String addToPythonPath(String cstr){
+	//make sure that sys is imported
+	PyRun_SimpleString("import sys");
+	PyObject *path = PySys_GetObject("path");
+
+	//convert to a constant seperator
+	cstr = cstr.FindReplace(TEXT("\\"), TEXT("/"));
+	String dir;
+	for (int i = 0 ; i < (cstr.NumTokens('/') -1); i++){
+		if (i != 0){
+			dir.AppendString(TEXT("/"));
+		}
+		dir.AppendString(cstr.GetToken(i, '/'));
+	}
+	PyList_Append(path, CTSTRtoPyUnicode(dir));
+	Log(TEXT("%ws"), dir);
+
+	String moduleName = cstr.GetToken(cstr.NumTokens('/')-1, '/');
+	moduleName = moduleName.GetToken(moduleName.NumTokens('.') - 2, '.');
+	return moduleName;
+}
+
+
+static bool isPyObjectBaseClass(PyObject *obj, String *type ){
+	
+
+	PyObject *tuple = obj->ob_type->tp_bases;
+
+	Py_ssize_t len = PyTuple_Size(tuple);
+	for (int i = 0; i < len; i++){
+		PyObject *base = PyTuple_GetItem(tuple, i);
+		PyObject *name = PyObject_GetAttrString(base, "__name__");
+		pyHasError();
+		wchar_t *cname = NULL;
+		if (name != NULL){
+			 cname = pyObjectToWSTR(name);
+		}
+		if (cname != NULL ){
+			if (wcscmp(cname, *type)== 0){
+				delete[] cname;
+				return true;
+			}
+			else{
+				delete[] cname;
+			}
+					
+		}
+	}
+	return false;
+
+
+}

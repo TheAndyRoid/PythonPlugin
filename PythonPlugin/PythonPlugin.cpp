@@ -20,14 +20,19 @@ PythonPlugin *PythonPlugin::instance = NULL;
 bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 {
 
-
+	String file;
+	String className;
+	String moduleName;
 	Log(TEXT("Python Source Configure"));
 	XElement *dataElement = element->GetElement(TEXT("data"));
 
 
-	bool isMissingDataElement;
+	bool isMissingDataElement = true;
 	if (isMissingDataElement = !dataElement) {
 		dataElement = element->CreateElement(TEXT("data"));
+	}
+	else{
+		isMissingDataElement = false;
 	}
 
 	
@@ -43,6 +48,21 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 		Log(TEXT("Python instance Does not exist"));
 		return NULL;
 	}
+	PyGILState_STATE gstate;
+	gstate = PyGILState_Ensure();
+	PyObject *pName, *pModule, *pFunc;
+
+	if (isMissingDataElement){
+		moduleName = TEXT("selectionGUI");
+		className = TEXT("gui");
+
+	}
+	else{
+		file = dataElement->GetString(TEXT("PythonGUIFile"));
+		className = dataElement->GetString(TEXT("PythonGUIClass"));
+		moduleName = addToPythonPath(file);
+
+	}
 
 
 	/*
@@ -53,25 +73,29 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 
 
-	PyGILState_STATE gstate;
-	gstate = PyGILState_Ensure();
+	
 
 	//Python
-	PyObject *pName, *pModule, *pFunc;
+	
 
 
-	pName = PyString_FromString("selectionGUI");
+	//get correct files from config here
+
+	
 	//pName = PyString_FromString("baseGUI");
 	pyHasError();
 
-
+	pName = CTSTRtoPyUnicode(moduleName);
 	PyObject *dict = PyImport_GetModuleDict();
 	if (!PyDict_Contains(dict, pName)){
 		pModule = PyImport_Import(pName);
+
+		pyHasError();
 	}
 	else{
 		pModule = PyDict_GetItem(dict, pName);
 		pModule = PyImport_ReloadModule(pModule);
+		pyHasError();
 	}
 
 
@@ -83,7 +107,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 
 	if (pModule != NULL) {
-		pFunc = PyObject_GetAttrString(pModule, (char*) "gui");
+		pFunc = PyObject_GetAttr(pModule, CTSTRtoPyUnicode(className));
 		//pFunc = PyObject_GetAttrString(pModule, (char*) "guimain");
 
 		if (pFunc && PyCallable_Check(pFunc)) {
@@ -125,8 +149,14 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 	PyGILState_Release(gstate);
 
-	//ReleaseMutex(pyPlug->ghMutex);
-	return true;
+	if (isMissingDataElement){
+		//The setup gui has run now run the specified gui
+		// check if the required element now exist and restart gui
+		return ConfigureVideoSource(element, false);
+	}
+	else{
+		return true;
+	}
 }
 
 ImageSource* STDCALL CreatePythonSource(XElement *data)
@@ -152,12 +182,30 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 		pyPlug->ghMutex,    // handle to mutex
 		INFINITE);  // no time-out interval
 	*/
-	
+
+	String file;
+	String className;
+	String moduleName;
 	
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();	
 
+
 	
+
+
+	file = data->GetString(TEXT("PythonMainFile"));
+	className = data->GetString(TEXT("PythonMainClass"));
+
+	if (file == NULL || className == NULL){
+		PyGILState_Release(gstate);
+		return NULL;		
+	}else{		
+		moduleName = addToPythonPath(file);
+	}
+
+
+		
 	
 	//Create Image source
 	pyPlug->pImageSource = new CppImageSource(data);	
@@ -167,15 +215,25 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	PyObject *pName, *pModule, *pFunc;
 	pyImageSource *pyImgSrc;
 
-	pName = PyString_FromString("playvideoClass");
+	pName = CTSTRtoPyUnicode(moduleName);
 
-	pyHasError();
-	pModule = PyImport_Import(pName);
-	pyHasError();
+
+
+	PyObject *dict = PyImport_GetModuleDict();
+	if (!PyDict_Contains(dict, pName)){
+		pModule = PyImport_Import(pName);
+		pyHasError();
+	}
+	else{
+		pModule = PyDict_GetItem(dict, pName);
+		pModule = PyImport_ReloadModule(pModule);
+		pyHasError();
+	}
+
 	bool pyObjectCreated = false;
 
 	if (pModule != NULL) {
-		pFunc = PyObject_GetAttrString(pModule, (char*) "playVideo");
+		pFunc = PyObject_GetAttr(pModule, CTSTRtoPyUnicode(className));
 		pyHasError();
 		// pFunc is a new reference 
 		if (pFunc && PyCallable_Check(pFunc)) {
@@ -186,7 +244,13 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 			((PyXElement*)pyConfig)->element = data;
 			argList = Py_BuildValue("(O)",pyConfig);
 			pyImgSrc = (pyImageSource*)PyObject_CallObject(pFunc, argList);
-			if (!pyHasError()){
+			
+			if (pyHasError()){
+				Log(TEXT("Unable to create class %ws"),className);
+			}
+			else if (!isPyObjectBaseClass((PyObject*)pyImgSrc, &String(TEXT("ImageSource")))){
+				Log(TEXT("PYTHON ERROR Class: %ws , is not derived from OBS.ImageSource"),className);
+			}else{
 				pyImgSrc->cppImageSource = pyPlug->pImageSource;
 				pyPlug->pImageSource->pyImgSrc = (PyObject*)pyImgSrc;
 				pyObjectCreated = true;
