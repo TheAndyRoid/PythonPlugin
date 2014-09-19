@@ -291,7 +291,24 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	return Py_BuildValue("");
 }
 
+static PyObject * pyImageSource_copyToBackBuffer(pyImageSource *self, PyObject *args){
 
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	unsigned long addr;
+	if (!PyArg_ParseTuple(args, "I", &addr)){
+		return NULL;
+	}
+	void * backBuf = self->cppImageSource->getBackBuffer();
+	int width = self->cppImageSource->getWidth();
+	int height = self->cppImageSource->getHeight();
+	int depth = self->cppImageSource->getBytesPerPixel();
+	memcpy(backBuf, (void*)addr, width*height*depth);
+
+}
 
 
 
@@ -324,16 +341,17 @@ static PyObject * pyImageSource_ToForeground(pyImageSource *self){
 /*Method Table*/
 static PyMethodDef pyImageSource_methods[] = {
 		{ "SetBuffers", (PyCFunction)pyImageSource_SetBuffers, METH_VARARGS, "Set which buffers to use for pixeldata and their format" },
-		{ "flipBuffers", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Flips buffers in double buffer mode" },
-		{ "render", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "tick", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "destructor", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "load", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "export", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "toBackground", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "toForeground", (PyCFunction)pyImageSource_FlipBuffers, METH_NOARGS, "Function to be overidden" },
-		{ "getAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_NOARGS, "Gets memory address for buffer for use with ctypes" },
-		{ "getBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_NOARGS, "Gets byte buffer" },
+		{ "flipBuffers", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Flips buffers in double buffer mode" },
+		{ "render", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "tick", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "destructor", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "load", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "export", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "toBackground", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "toForeground", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "getAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_VARARGS, "Gets memory address for buffer for use with ctypes" },
+		{ "getBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
+		{ "copyToBackBuffer", (PyCFunction)pyImageSource_copyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
 	{ NULL }  /* Sentinel */
 };
 

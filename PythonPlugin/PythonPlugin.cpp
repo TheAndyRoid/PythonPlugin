@@ -391,6 +391,15 @@ PythonPlugin::~PythonPlugin()
 		}
 	}
 
+
+	for (std::map<unsigned long, PyObject*>::iterator it = hotkeyToCallable.begin(); it != hotkeyToCallable.end(); ++it){
+		PyObject* callback = it->second;
+		Py_DECREF(callback);
+	}
+
+	hotkeyToCallable.clear();
+
+
 	
 	
 	if (Py_IsInitialized()){
