@@ -7,6 +7,7 @@
 #include "OBSApi.h"
 #include "CppImageSource.h"
 #include "PythonPlugin.h"
+#include "PyVect4.h"
 
 
 
@@ -219,6 +220,67 @@ static PyObject * pyImageSource_DrawSprite(pyImageSource *self, PyObject *args){
 }
 
 
+
+static PyObject * pyImageSource_SetCropping(pyImageSource *self, PyObject *args){
+	CppImageSource * imgSrc = self->cppImageSource;
+	if (imgSrc == NULL){
+		PyErr_SetString(PyExc_TypeError, "Missing CppInstance");
+		return NULL;
+	}
+
+	long argLength = PyTuple_Size(args);
+	if (argLength != 4){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	float top, left, right, bottom;
+
+	int value;
+
+	if (!PyArg_ParseTuple(args, "ffff", &left, &top, &right, &bottom )){
+		return NULL;
+	}
+
+	GS->SetCropping(left, top, bottom, right);
+
+
+	return Py_BuildValue("");
+}
+
+
+
+static PyObject * pyImageSource_GetCropping(pyImageSource *self, PyObject *args){
+	CppImageSource * imgSrc = self->cppImageSource;
+	if (imgSrc == NULL){
+		PyErr_SetString(PyExc_TypeError, "Missing CppInstance");
+		return Py_BuildValue("");
+	}
+
+	Scene *scene = OBSGetScene();
+	SceneItem *sceneItem = scene->GetSceneItem(imgSrc->getSourceName());
+	Vect4 crop = sceneItem->GetCrop();
+
+	PyObject * OBSModule = PyImport_ImportModule("OBS");
+	if (OBSModule == NULL){
+		Log(TEXT("OBSModule null"));
+	}
+
+	PyObject * vect4 = PyObject_GetAttr(OBSModule, PyString_FromString("Vect4"));
+	if (vect4 == NULL){
+		Log(TEXT("vect4 null"));
+		return Py_BuildValue("");
+	}
+
+	PyObject *argList = Py_BuildValue("(dddd)", crop.x, crop.y,crop.z,crop.w);
+	PyObject *pySize = PyObject_CallObject(vect4, argList);
+	if (pySize == NULL){
+		return Py_BuildValue("");
+	}
+	return pySize;
+}
+
+
+
 static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	PyObject *bufA,*bufB,*format;
 
@@ -422,6 +484,8 @@ static PyMethodDef pyImageSource_methods[] = {
 		{ "globalSourceLeaveScene", (PyCFunction)pyImageSource_GlobalSourceLeaveScene, METH_VARARGS, "Function to be overidden" },
 		{ "ChangeScene", (PyCFunction)pyImageSource_ChangeScene, METH_VARARGS, "Function to be overidden" },
 		{ "tick", (PyCFunction)pyImageSource_Tick, METH_VARARGS, "Function to be overidden" },
+		{ "setCropping", (PyCFunction)pyImageSource_SetCropping, METH_VARARGS, "Set the draw cropping of the current frame" },
+		{ "getCropping", (PyCFunction)pyImageSource_GetCropping, METH_VARARGS, "Gets cropping of current frame" },
 		{ "destructor", (PyCFunction)pyImageSource_Destructor, METH_VARARGS, "Function to be overidden" },
 		{ "load", (PyCFunction)pyImageSource_Load, METH_VARARGS, "Function to be overidden" },
 		{ "export", (PyCFunction)pyImageSource_Export, METH_VARARGS, "Function to be overidden" },

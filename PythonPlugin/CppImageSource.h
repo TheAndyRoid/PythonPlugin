@@ -67,6 +67,9 @@ public:
 	bool setupFormats(char *format);
 	void setPersistant(bool value){ persistant = value; };
 
+	String getSourceName(){ return source; };
+	String getSceneName(){ return scene; };
+
 
 public:
 	/*Setters*/

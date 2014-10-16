@@ -304,6 +304,7 @@ static PyObject *
 py_OBSGetSceneElement(PyObject *self, PyObject *args){
 	PyObject *pyElement = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyElement)->element = OBSGetSceneElement();
+
 	return pyElement;
 }
 static PyObject *
@@ -637,6 +638,12 @@ initOBS(void)
 		return;
 	Py_INCREF(&PyVect2_Object);
 	PyModule_AddObject(m, "Vect2", (PyObject *)&PyVect2_Object);
+
+
+	if (PyType_Ready(&PyVect4_Object) < 0)
+		return;
+	Py_INCREF(&PyVect4_Object);
+	PyModule_AddObject(m, "Vect4", (PyObject *)&PyVect4_Object);
 
 
 	if (PyType_Ready(&PyXElement_Object) < 0)
