@@ -87,14 +87,14 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 	pName = CTSTRtoPyUnicode(moduleName);
 	PyObject *dict = PyImport_GetModuleDict();
-	if (!PyDict_Contains(dict, pName)){
-		pModule = PyImport_Import(pName);
-
-		pyHasError();
-	}
-	else{
+	bool reload = false;
+	if (PyDict_Contains(dict, pName) && reload){ //make a debug option to reload source	
 		pModule = PyDict_GetItem(dict, pName);
 		pModule = PyImport_ReloadModule(pModule);
+		pyHasError();
+	}
+	else { 	
+		pModule = PyImport_Import(pName);
 		pyHasError();
 	}
 
@@ -164,6 +164,12 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 	Log(TEXT("Python Create ImageSource"));
 
+	XElement *thisSource = data->GetParent();
+	XElement *sources = thisSource->GetParent();
+	XElement *thisScene = sources->GetParent();
+	
+	String sourceName = thisSource->GetName();
+	String sceneName = thisScene->GetName();
 
 	/*Called when the element is created at stream start.*/
 
@@ -176,6 +182,39 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 		Log(TEXT("Python instance Does not exist"));	
 		return NULL;
 	}	
+
+	//Create Image source
+	pyPlug->pImageSource = new CppImageSource(data);
+	String parent = ((data->GetParent())->GetParent())->GetName();
+	bool persistantObject = false;
+	if (data->GetInt(TEXT("Persistant")) && !(parent == TEXT("global sources"))){
+		persistantObject = true;
+		pyPlug->pImageSource->setPersistant(true);
+	}
+
+	
+	
+	//Check if object aleady exists as persistant
+	//Add to persistant
+	//
+	if (persistantObject ){	
+		PyObject *pyPerst = NULL;
+		pyPerst = pyPlug->getPersistItem(sceneName, sourceName);
+		if (pyPerst != NULL){
+			//Python object already exists yay
+			Log(TEXT("Persistant object detected and found"));
+
+			((pyImageSource*)pyPerst)->cppImageSource = pyPlug->pImageSource;
+			pyPlug->pImageSource->pyImgSrc = (PyObject*)pyPerst;
+			return pyPlug->pImageSource;
+		}
+	}
+	
+
+
+
+
+
 
 	/*
 	DWORD dwWaitResult = WaitForSingleObject(
@@ -207,13 +246,12 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 		
 	
-	//Create Image source
-	pyPlug->pImageSource = new CppImageSource(data);	
+	
 
 	
 	//Python
 	PyObject *pName, *pModule, *pFunc;
-	pyImageSource *pyImgSrc;
+	pyImageSource *pyImgSrc = NULL;
 
 	pName = CTSTRtoPyUnicode(moduleName);
 
@@ -278,11 +316,17 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 	//ReleaseMutex(pyPlug->ghMutex);
 	if (pyObjectCreated){
+		//Add to persistant
+		if (persistantObject){
+			pyPlug->setPersistItem(sceneName, sourceName, (PyObject*)pyImgSrc);
+		}
 		return pyPlug->pImageSource;
 	}
 	else{
 		return NULL;
 	}
+	
+
 }
 
 
@@ -392,12 +436,14 @@ PythonPlugin::~PythonPlugin()
 	}
 
 
-	for (std::map<unsigned long, PyObject*>::iterator it = hotkeyToCallable.begin(); it != hotkeyToCallable.end(); ++it){
-		PyObject* callback = it->second;
-		Py_DECREF(callback);
-	}
+	
 
-	hotkeyToCallable.clear();
+	//Run Alocated cleanup functions
+	//One cleanup per uinque file
+	clearShutdownFunctions();
+
+	//Cleanup persistant objects
+
 
 
 	
@@ -443,4 +489,130 @@ void OnStartStream()
 
 void OnStopStream()
 {
+
+	PythonPlugin *pyPlug = PythonPlugin::instance;
+	if (pyPlug == NULL){
+		Log(TEXT("Python instance Does not exist"));
+	}
+
+
+	PyGILState_STATE gstate;
+	gstate = PyGILState_Ensure();
+
+	for (std::map<unsigned long, PyObject*>::iterator it = pyPlug->hotkeyToCallable.begin(); it != pyPlug->hotkeyToCallable.end(); ++it){
+		PyObject* callback = it->second;
+		Py_DECREF(callback);
+	}
+
+	pyPlug->hotkeyToCallable.clear();
+
+
+
+	pyPlug->clearPersistItems();
+
+	
+
+
+
+
+	PyGILState_Release(gstate);
+	return;
+}
+
+void PythonPlugin::setPersistItem(String sceneName, String sourceName,PyObject *pyImgSrc){
+	
+		if (persistantPyObjects.count(sceneName)){
+			//scene already exists
+			//get source map
+			source_map &sourceMap = persistantPyObjects[sceneName];
+			if (sourceMap.count(sourceName)){
+				//source already exists What?
+			}
+			else{
+				sourceMap[sourceName] = (PyObject*)pyImgSrc;
+			}
+
+		}
+		else{
+			//add scene and source
+			persistantPyObjects[sceneName][sourceName] = (PyObject*)pyImgSrc;
+		}
+}
+
+PyObject * PythonPlugin::getPersistItem(String sceneName, String sourceName){
+
+	if (persistantPyObjects.count(sceneName)){
+
+		if (persistantPyObjects[sceneName].count(sourceName)){
+
+			return persistantPyObjects[sceneName][sourceName];
+		}
+				
+	}
+	return NULL;
+	
+
+}
+
+void PythonPlugin::clearPersistItems(){
+	//Get persistant items that are in the current scene
+
+	XElement* scene = OBSGetSceneElement();
+	String skipScene = scene->GetName();
+
+
+
+
+
+
+
+	for (scene_map::iterator i = persistantPyObjects.begin(); i != persistantPyObjects.end(); ++i){
+		if (i->first == skipScene){
+			continue;
+		}
+		source_map sourceMap = i->second;
+		for (source_map::iterator j = sourceMap.begin(); j != sourceMap.end(); ++j){
+			PyObject* pyImage = j->second;
+			PyObject * destr;
+			//call destructor
+			if (pyImage != NULL){
+				destr = PyObject_GetAttrString(pyImage, (char*) "destructor");
+				if (PyCallable_Check(destr)){
+					PyObject *argList = Py_BuildValue("()");
+					PyObject_CallObject(destr, argList);
+					Py_DECREF(argList);
+				}
+				Py_DECREF(destr);
+			}
+			
+			Py_DECREF(pyImage);
+		}
+	}
+
+	persistantPyObjects.clear();
+}
+
+void PythonPlugin::addShutdownFunction(String filename, PyObject *function){
+
+	shutdownFunc[filename] = function;
+	Py_INCREF(function);
+}
+
+
+void PythonPlugin::clearShutdownFunctions(){
+
+
+	for (shutdown_map::iterator i = shutdownFunc.begin(); i != shutdownFunc.end(); ++i){
+
+		PyObject* pyFunc = i->second;
+		//call shutdown func
+		if (pyFunc != NULL){
+			PyObject *argList = Py_BuildValue("()");
+			PyObject_CallObject(pyFunc, argList);
+			Py_DECREF(argList);
+		}
+		Py_DECREF(pyFunc);
+	}
+	shutdownFunc.clear();
+
 }

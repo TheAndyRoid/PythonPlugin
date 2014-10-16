@@ -745,7 +745,7 @@ static PyObject *pyXElement_GetDataItemByID(PyXElement *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject *pyXElement_NumElements(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
+	return PyInt_FromLong(self->element->NumElements());
 }
 static PyObject *pyXElement_NumBaseItems(PyXElement *self, PyObject *args){
 	return Py_BuildValue("");
@@ -1015,7 +1015,7 @@ static PyObject *pyXElement_GetElementByItem(PyXElement *self, PyObject *args){
 }
 static PyObject *pyXElement_GetElementByID(PyXElement *self, PyObject *args){
 	long argLength = PyTuple_Size(args);
-	if (argLength != 2){
+	if (argLength != 1){
 		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
 		return NULL;
 	}

@@ -14,6 +14,9 @@
 
 CppImageSource::CppImageSource(XElement *data)
 {
+
+	this->source = data->GetParent()->GetName();
+	this->scene = data->GetParent()->GetParent()->GetParent()->GetName();
 	Log(TEXT("Python Source Constructor"));
 
 	PythonPlugin *pyPlug = PythonPlugin::instance;
@@ -26,8 +29,6 @@ CppImageSource::CppImageSource(XElement *data)
 
 	//MakeTexture();
 
-	
-	
 
 	pyRender = NULL;
 	pyImgSrc = NULL;
@@ -53,47 +54,56 @@ CppImageSource::~CppImageSource(){
 	gstate = PyGILState_Ensure();
 
 
-
-		
-	PyObject *stop = NULL;
-	if (pyImgSrc != NULL){
-		stop = PyObject_GetAttrString(pyImgSrc, (char*)"stop");
-		pyHasError();
-	}
-	else{
-		stop == NULL;
-	}
-
 	
-	
-
-	if (stop != NULL && PyCallable_Check(stop)){
-		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
-		Py_XDECREF(result);
-	}
-
-	Py_XDECREF(stop);
-	
-	
-	PyObject *destr;
-	if (pyImgSrc != NULL){
-		destr = PyObject_GetAttrString(pyImgSrc, (char*) "destructor");
-	}else{
-		destr = NULL;
-	}
-
-	if (destr != NULL && PyCallable_Check(stop)){
-		PyObject *result = PyObject_CallObject(stop, Py_BuildValue("()"));
-		Py_XDECREF(result);
-	}
-	Py_XDECREF(destr);
 	
 
 	Py_XDECREF(pyRender);
 
 	pyImageSource* tmp = (pyImageSource*)pyImgSrc;
 	tmp->cppImageSource = NULL;
-	Py_XDECREF(pyImgSrc);
+
+	bool destroy = true;
+	if (persistant && OBSGetStreaming()){
+	//check if source is still in the scene
+		XElement *sceneList = OBSGetSceneListElement();
+		XElement *scene = sceneList->GetElement(this->scene);
+		if (!scene){
+			//This scene has been destroyed time to die
+			destroy = true;
+		}
+		else{
+			String sceneName = scene->GetName();
+			XElement *sources = scene->GetElement(TEXT("sources"));
+			XElement *source = sources->GetElement(this->source);
+			if (!source){
+				//this sources has been removed from the scene time to die
+				destroy = true;				
+			}
+			else{
+				//scene and source still exist keep the item
+				destroy = false;
+			}
+		}	
+	}else{//Stopped Streaming
+		destroy = true;
+	}
+	
+	if (destroy){
+		PyObject *destr;
+		if (pyImgSrc != NULL){
+			destr = PyObject_GetAttrString(pyImgSrc, (char*) "destructor");
+			if (PyCallable_Check(destr)){
+				PyObject *argList = Py_BuildValue("()");
+				PyObject_CallObject(destr, argList);
+				Py_DECREF(argList);
+			}
+		}
+		else{
+			destr = NULL;
+		}
+		Py_XDECREF(destr);
+		Py_XDECREF(pyImgSrc);	
+	}
 	
 	
 	pyRender = NULL;
@@ -118,7 +128,92 @@ CppImageSource::~CppImageSource(){
 }
 
 
+void CppImageSource::Tick(float seconds){
 
+	PythonPlugin *pyPlug = PythonPlugin::instance;
+	if (pyPlug == NULL){
+		Log(TEXT("Python instance Does not exist"));
+		return;
+	}
+
+	PyGILState_STATE gstate;
+	gstate = PyGILState_Ensure();
+
+	PyObject *pyTick = PyObject_GetAttrString(pyImgSrc, (char*) "tick");
+	if (pyTick != NULL && PyCallable_Check(pyTick)){
+
+	}
+	else{
+		pyTick = NULL;
+		Log(TEXT("tick function not callable"));
+		PyGILState_Release(gstate);
+		return;
+	}
+
+	PyObject * OBSModule = PyImport_ImportModule("OBS");
+	if (OBSModule == NULL){
+		Log(TEXT("OBSModule null"));
+	}
+
+	PyObject *argList = Py_BuildValue("(f)", seconds);
+	PyObject *result = PyObject_CallObject(pyTick, argList);
+
+	if (pyHasError()){
+		PyGILState_Release(gstate);
+		return;
+	}
+
+	Py_XDECREF(argList);
+	Py_XDECREF(pyTick);
+	Py_XDECREF(result);
+	Py_XDECREF(OBSModule);
+
+	PyGILState_Release(gstate);
+
+}
+void CppImageSource::UpdateSettings(){
+
+	PythonPlugin *pyPlug = PythonPlugin::instance;
+	if (pyPlug == NULL){
+		Log(TEXT("Python instance Does not exist"));
+		return;
+	}
+
+	PyGILState_STATE gstate;
+	gstate = PyGILState_Ensure();
+
+	PyObject *pyUpdateSettings = PyObject_GetAttrString(pyImgSrc, (char*) "updatesettings");
+	if (pyUpdateSettings != NULL && PyCallable_Check(pyUpdateSettings)){
+
+	}
+	else{
+		pyUpdateSettings = NULL;
+		Log(TEXT("updatesettings function not callable"));
+		PyGILState_Release(gstate);
+		return;
+	}
+
+	PyObject * OBSModule = PyImport_ImportModule("OBS");
+	if (OBSModule == NULL){
+		Log(TEXT("OBSModule null"));
+	}
+
+	PyObject *argList = Py_BuildValue("()");
+	PyObject *result = PyObject_CallObject(pyUpdateSettings, argList);
+
+	if (pyHasError()){
+		PyGILState_Release(gstate);
+		return;
+	}
+
+	Py_XDECREF(argList);
+	Py_XDECREF(pyUpdateSettings);
+	Py_XDECREF(result);
+	Py_XDECREF(OBSModule);
+
+	PyGILState_Release(gstate);
+
+}
 
 
 void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
@@ -146,29 +241,19 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	gstate = PyGILState_Ensure();
 
 
-	if (pyRender == NULL){
-		
-		//Try to get the object
-		if (pyImgSrc == NULL){
-			Log(TEXT("No pyImageSource"));
-			PyGILState_Release(gstate);
-
-			return;
-		}
 
 
 		pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "render");
-		//pyRender = ((pyImageSource*)pyImgSrc)->render;
 		if (pyRender != NULL && PyCallable_Check(pyRender)){
 			
-		}else{			
+		}
+		else{
 			pyRender = NULL;
 			Log(TEXT("rendercallback not callable"));
 			PyGILState_Release(gstate);
-		
+
 			return;
 		}
-	}
 	
 
 	//Log(TEXT("Render"));
@@ -207,7 +292,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	Py_DECREF(argList);
 
 
-	argList = Py_BuildValue("(OOO)", pyImgSrc, pyPos, pySize, pyImgSrc);
+	argList = Py_BuildValue("(OO)", pyPos, pySize);
 	PyObject *result = PyObject_CallObject(pyRender, argList);
 	
 	if (pyHasError()){
@@ -236,17 +321,17 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	
 	
 	//ColourArea();
-	
+	/*
 	if (texture){
 		//getImageFromPython();
 		if (getFrontBuffer() != NULL){
 			texture->SetImage(getFrontBuffer(), imgFormat, texture->Width() * imgDepth);
 			//Draw the texture
 			//Top left and bottum right coords
-			DrawSprite(texture, 0xFFFFFFFF, pos.x, pos.y, pos.x + size.x, size.y + pos.y);
+			//DrawSprite(texture, 0xFFFFFFFF, pos.x, pos.y, pos.x + size.x, size.y + pos.y);
 		}
 		
-	}
+	}*/
 
 	PyGILState_Release(gstate);
 	
@@ -478,3 +563,268 @@ void CppImageSource::getImageFromPython(){
  }
 
  
+ void CppImageSource::DrawSprite(Texture *texture, DWORD colour,
+	 float x, float y, float z,
+	 float x1, float y1, float z1,
+	 float x2, float y2, float z2,
+	 float x3, float y3, float z3){
+ 
+
+	 HANDLE hColor = GetCurrentPixelShader()->GetParameterByName(TEXT("outputColor"));
+	 GetCurrentPixelShader()->SetColor(hColor, colour);
+	 
+	
+
+
+	 VBData *data = new VBData;
+	 data->UVList.SetSize(1);
+	 data->VertList.SetSize(4);
+	 data->UVList[0].SetSize(4);
+
+	 VertexBuffer *vbuf = CreateVertexBuffer(data,false);
+
+	 VBData *mydata = vbuf->GetData();
+	 
+	 mydata->VertList[0].Set(x, y, z);
+	 mydata->VertList[1].Set(x1, y1,  z1);	
+	 mydata->VertList[2].Set(x2, y2,  z2);	
+	 mydata->VertList[3].Set(x3, y3,  z3);
+	 
+ 
+	 float u = 0, v = 0, u2 = 1, v2 = 1;
+	 List<UVCoord> &coords = data->UVList[0];
+	 coords[0].Set(u, v);
+	 coords[1].Set(u, v2);
+	 coords[2].Set(u2, v);  //topl
+	 coords[3].Set(u2, v2);
+ 
+	 vbuf->FlushBuffers();
+	 LoadVertexBuffer(vbuf);
+	 LoadTexture(texture);
+	 Draw(GS_TRIANGLESTRIP);
+
+	 delete vbuf;
+ }
+
+
+ void CppImageSource::BeginScene(){
+ 
+	 
+	 PythonPlugin *pyPlug = PythonPlugin::instance;
+	 if (pyPlug == NULL){
+		 Log(TEXT("Python instance Does not exist"));
+		 return;
+	 }
+
+	 PyGILState_STATE gstate;
+	 gstate = PyGILState_Ensure();
+
+	 PyObject *pyUpdateSettings = PyObject_GetAttrString(this->pyImgSrc, (char*) "beginScene");
+	 if (pyUpdateSettings != NULL && PyCallable_Check(pyUpdateSettings)){
+
+	 }
+	 else{
+		 pyUpdateSettings = NULL;
+		 Log(TEXT("updatesettings function not callable"));
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 PyObject * OBSModule = PyImport_ImportModule("OBS");
+	 if (OBSModule == NULL){
+		 Log(TEXT("OBSModule null"));
+	 }
+
+	 PyObject *argList = Py_BuildValue("()");
+	 PyObject *result = PyObject_CallObject(pyUpdateSettings, argList);
+
+	 if (pyHasError()){
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 Py_XDECREF(argList);
+	 Py_XDECREF(pyUpdateSettings);
+	 Py_XDECREF(result);
+	 Py_XDECREF(OBSModule);
+
+	 PyGILState_Release(gstate);
+ }
+
+
+ void CppImageSource::EndScene(){
+
+	 PythonPlugin *pyPlug = PythonPlugin::instance;
+	 if (pyPlug == NULL){
+		 Log(TEXT("Python instance Does not exist"));
+		 return;
+	 }
+
+	 PyGILState_STATE gstate;
+	 gstate = PyGILState_Ensure();
+
+	 PyObject *pyUpdateSettings = PyObject_GetAttrString(pyImgSrc, (char*) "endScene");
+	 if (pyUpdateSettings != NULL && PyCallable_Check(pyUpdateSettings)){
+
+	 }
+	 else{
+		 pyUpdateSettings = NULL;
+		 Log(TEXT("updatesettings function not callable"));
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 PyObject * OBSModule = PyImport_ImportModule("OBS");
+	 if (OBSModule == NULL){
+		 Log(TEXT("OBSModule null"));
+	 }
+
+	 PyObject *argList = Py_BuildValue("()");
+	 PyObject *result = PyObject_CallObject(pyUpdateSettings, argList);
+
+	 if (pyHasError()){
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 Py_XDECREF(argList);
+	 Py_XDECREF(pyUpdateSettings);
+	 Py_XDECREF(result);
+	 Py_XDECREF(OBSModule);
+
+	 PyGILState_Release(gstate);
+ }
+
+ void CppImageSource::GlobalSourceEnterScene(){
+
+
+	 PythonPlugin *pyPlug = PythonPlugin::instance;
+	 if (pyPlug == NULL){
+		 Log(TEXT("Python instance Does not exist"));
+		 return;
+	 }
+
+	 PyGILState_STATE gstate;
+	 gstate = PyGILState_Ensure();
+
+	 PyObject *pyUpdateSettings = PyObject_GetAttrString(pyImgSrc, (char*) "globalSourceEnterScene");
+	 if (pyUpdateSettings != NULL && PyCallable_Check(pyUpdateSettings)){
+
+	 }
+	 else{
+		 pyUpdateSettings = NULL;
+		 Log(TEXT("updatesettings function not callable"));
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 PyObject * OBSModule = PyImport_ImportModule("OBS");
+	 if (OBSModule == NULL){
+		 Log(TEXT("OBSModule null"));
+	 }
+
+	 PyObject *argList = Py_BuildValue("()");
+	 PyObject *result = PyObject_CallObject(pyUpdateSettings, argList);
+
+	 if (pyHasError()){
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 Py_XDECREF(argList);
+	 Py_XDECREF(pyUpdateSettings);
+	 Py_XDECREF(result);
+	 Py_XDECREF(OBSModule);
+
+	 PyGILState_Release(gstate);
+ }
+
+
+ void CppImageSource::GlobalSourceLeaveScene(){
+
+
+	 PythonPlugin *pyPlug = PythonPlugin::instance;
+	 if (pyPlug == NULL){
+		 Log(TEXT("Python instance Does not exist"));
+		 return;
+	 }
+
+	 PyGILState_STATE gstate;
+	 gstate = PyGILState_Ensure();
+
+	 PyObject *pyUpdateSettings = PyObject_GetAttrString(pyImgSrc, (char*) "globalSourceLeaveScene");
+	 if (pyUpdateSettings != NULL && PyCallable_Check(pyUpdateSettings)){
+
+	 }
+	 else{
+		 pyUpdateSettings = NULL;
+		 Log(TEXT("updatesettings function not callable"));
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 PyObject * OBSModule = PyImport_ImportModule("OBS");
+	 if (OBSModule == NULL){
+		 Log(TEXT("OBSModule null"));
+	 }
+
+	 PyObject *argList = Py_BuildValue("()");
+	 PyObject *result = PyObject_CallObject(pyUpdateSettings, argList);
+
+	 if (pyHasError()){
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 Py_XDECREF(argList);
+	 Py_XDECREF(pyUpdateSettings);
+	 Py_XDECREF(result);
+	 Py_XDECREF(OBSModule);
+
+	 PyGILState_Release(gstate);
+ }
+
+
+ void CppImageSource::ChangeScene(){
+
+	 PythonPlugin *pyPlug = PythonPlugin::instance;
+	 if (pyPlug == NULL){
+		 Log(TEXT("Python instance Does not exist"));
+		 return;
+	 }
+
+	 PyGILState_STATE gstate;
+	 gstate = PyGILState_Ensure();
+
+	 PyObject *pyUpdateSettings = PyObject_GetAttrString(pyImgSrc, (char*) "ChangeScene");
+	 if (pyUpdateSettings != NULL && PyCallable_Check(pyUpdateSettings)){
+
+	 }
+	 else{
+		 pyUpdateSettings = NULL;
+		 Log(TEXT("updatesettings function not callable"));
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 PyObject * OBSModule = PyImport_ImportModule("OBS");
+	 if (OBSModule == NULL){
+		 Log(TEXT("OBSModule null"));
+	 }
+
+	 PyObject *argList = Py_BuildValue("()");
+	 PyObject *result = PyObject_CallObject(pyUpdateSettings, argList);
+
+	 if (pyHasError()){
+		 PyGILState_Release(gstate);
+		 return;
+	 }
+
+	 Py_XDECREF(argList);
+	 Py_XDECREF(pyUpdateSettings);
+	 Py_XDECREF(result);
+	 Py_XDECREF(OBSModule);
+
+	 PyGILState_Release(gstate);
+
+ }

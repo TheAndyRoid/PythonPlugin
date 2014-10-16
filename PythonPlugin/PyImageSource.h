@@ -169,6 +169,56 @@ static PyObject * pyImageSource_GetBackBuffer(pyImageSource *self){
 	}
 }
 
+
+static PyObject * pyImageSource_DrawSprite(pyImageSource *self, PyObject *args){
+	CppImageSource * imgSrc = self->cppImageSource;
+	if (imgSrc == NULL){
+		PyErr_SetString(PyExc_TypeError, "Missing CppInstance");
+		return NULL;
+	}	
+	Texture * tex = imgSrc->GetTexture();
+	if (!tex && imgSrc->getFrontBuffer() != NULL){
+		PyErr_SetString(PyExc_TypeError, "Missing texture");
+		return NULL;
+	}
+	else{
+		tex->SetImage(imgSrc->getFrontBuffer(), imgSrc->getImageFormat(), tex->Width() * imgSrc->getBytesPerPixel());
+	}
+
+	long argLength = PyTuple_Size(args);
+	float x, y, x2, y2, u, w, u2, w2;
+	DWORD colour;
+	Matrix original,custom;
+	Euler a;
+	switch (argLength){
+	case 3:
+		if (!PyArg_ParseTuple(args, "kff", &colour,&x, &y)){
+			return NULL;
+		}
+		DrawSprite(tex, colour, x, y);
+		break;
+	case 5:		
+		if (!PyArg_ParseTuple(args, "kffff", &colour, &x, &y,&x2,&y2)){
+			return NULL;
+		}
+		DrawSprite(tex, colour, x, y,x2,y2);
+		break;
+	case 9:
+		
+		if (!PyArg_ParseTuple(args, "kffffffff", &colour, &x, &y, &x2, &y2,&u,&w,&u2,&w2)){
+			return NULL;
+		}	
+		DrawSpriteEx(tex, colour, x, y, x2, y2,u,w,u2,w2);		
+		break;
+	default:
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+		break;
+	}
+	return Py_BuildValue("");
+}
+
+
 static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	PyObject *bufA,*bufB,*format;
 
@@ -302,11 +352,14 @@ static PyObject * pyImageSource_copyToBackBuffer(pyImageSource *self, PyObject *
 	if (!PyArg_ParseTuple(args, "I", &addr)){
 		return NULL;
 	}
-	void * backBuf = self->cppImageSource->getBackBuffer();
-	int width = self->cppImageSource->getWidth();
-	int height = self->cppImageSource->getHeight();
-	int depth = self->cppImageSource->getBytesPerPixel();
-	memcpy(backBuf, (void*)addr, width*height*depth);
+	if (self->cppImageSource){
+		void * backBuf = self->cppImageSource->getBackBuffer();
+		int width = self->cppImageSource->getWidth();
+		int height = self->cppImageSource->getHeight();
+		int depth = self->cppImageSource->getBytesPerPixel();
+		memcpy(backBuf, (void*)addr, width*height*depth);
+	}
+	return Py_BuildValue("");
 
 }
 
@@ -317,6 +370,9 @@ static PyObject * pyImageSource_Render(pyImageSource *self){
 	return Py_BuildValue("");
 }
 static PyObject * pyImageSource_Tick(pyImageSource *self){
+	return Py_BuildValue("");
+}
+static PyObject * pyImageSource_UpdateSettings(pyImageSource *self){
 	return Py_BuildValue("");
 }
 static PyObject * pyImageSource_Destructor(pyImageSource *self){
@@ -334,21 +390,43 @@ static PyObject * pyImageSource_ToBackground(pyImageSource *self){
 static PyObject * pyImageSource_ToForeground(pyImageSource *self){
 	return Py_BuildValue("");
 }
+static PyObject * pyImageSource_BeginScene(pyImageSource *self){
+	return Py_BuildValue("");
+}
+static PyObject * pyImageSource_EndScene(pyImageSource *self){
+	return Py_BuildValue("");
+}
 
+static PyObject * pyImageSource_GlobalSourceEnterScene(pyImageSource *self){
+	return Py_BuildValue("");
+}
 
+static PyObject * pyImageSource_GlobalSourceLeaveScene(pyImageSource *self){
+	return Py_BuildValue("");
+}
+static PyObject * pyImageSource_ChangeScene(pyImageSource *self){
+	return Py_BuildValue("");
+}
 
 
 /*Method Table*/
 static PyMethodDef pyImageSource_methods[] = {
 		{ "SetBuffers", (PyCFunction)pyImageSource_SetBuffers, METH_VARARGS, "Set which buffers to use for pixeldata and their format" },
 		{ "flipBuffers", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Flips buffers in double buffer mode" },
-		{ "render", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
-		{ "tick", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
-		{ "destructor", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
-		{ "load", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
-		{ "export", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
-		{ "toBackground", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
-		{ "toForeground", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Function to be overidden" },
+		{ "drawSprite", (PyCFunction)pyImageSource_DrawSprite, METH_VARARGS, "Draws front buffer to screen" },
+		{ "render", (PyCFunction)pyImageSource_Render, METH_VARARGS, "Function to be overidden" },
+		{ "updatesettings", (PyCFunction)pyImageSource_UpdateSettings, METH_VARARGS, "Function to be overidden" },
+		{ "beginScene", (PyCFunction)pyImageSource_BeginScene, METH_VARARGS, "Function to be overidden" },
+		{ "endScene", (PyCFunction)pyImageSource_EndScene, METH_VARARGS, "Function to be overidden" },
+		{ "globalSourceEnterScene", (PyCFunction)pyImageSource_GlobalSourceEnterScene, METH_VARARGS, "Function to be overidden" },
+		{ "globalSourceLeaveScene", (PyCFunction)pyImageSource_GlobalSourceLeaveScene, METH_VARARGS, "Function to be overidden" },
+		{ "ChangeScene", (PyCFunction)pyImageSource_ChangeScene, METH_VARARGS, "Function to be overidden" },
+		{ "tick", (PyCFunction)pyImageSource_Tick, METH_VARARGS, "Function to be overidden" },
+		{ "destructor", (PyCFunction)pyImageSource_Destructor, METH_VARARGS, "Function to be overidden" },
+		{ "load", (PyCFunction)pyImageSource_Load, METH_VARARGS, "Function to be overidden" },
+		{ "export", (PyCFunction)pyImageSource_Export, METH_VARARGS, "Function to be overidden" },
+		{ "toBackground", (PyCFunction)pyImageSource_ToBackground, METH_VARARGS, "Function to be overidden" },
+		{ "toForeground", (PyCFunction)pyImageSource_ToForeground, METH_VARARGS, "Function to be overidden" },
 		{ "getAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_VARARGS, "Gets memory address for buffer for use with ctypes" },
 		{ "getBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
 		{ "copyToBackBuffer", (PyCFunction)pyImageSource_copyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
@@ -357,11 +435,6 @@ static PyMethodDef pyImageSource_methods[] = {
 
 /*Member table*/
 static PyMemberDef pyImageSource_members[] = {
-		{ "renderCallBack", T_OBJECT_EX, offsetof(pyImageSource, render), 0, "renderCallBack" },
-		{ "stopCallBack", T_OBJECT_EX, offsetof(pyImageSource, stop), 0, "stopCallBack" },
-		{ "tickCallBack", T_OBJECT_EX, offsetof(pyImageSource, tick), 0, "tickCallBack" },
-		//{ "data", T_OBJECT_EX, offsetof(pyImageSource, data), 0, "data" },
-		{ "updateSettingsCallBack", T_OBJECT_EX, offsetof(pyImageSource, updateSettings), 0, "updateSettingsCallBack" },
 	{ NULL }  /* Sentinel */
 };
 

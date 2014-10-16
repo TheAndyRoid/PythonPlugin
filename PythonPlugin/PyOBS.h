@@ -286,6 +286,285 @@ py_OBSDeleteHotKey(PyObject *self, PyObject *args){
 	return Py_BuildValue("");
 }
 
+
+static PyObject *
+py_OBSGetSceneListElement(PyObject *self, PyObject *args){
+	PyObject *pyElement = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
+	((PyXElement*)pyElement)->element = OBSGetSceneListElement();
+	return pyElement;
+}
+static PyObject *
+py_OBSGetGlobalSourceListElement(PyObject *self, PyObject *args){
+	PyObject *pyElement = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
+	((PyXElement*)pyElement)->element = OBSGetGlobalSourceListElement();
+	return pyElement;
+}
+
+static PyObject *
+py_OBSGetSceneElement(PyObject *self, PyObject *args){
+	PyObject *pyElement = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
+	((PyXElement*)pyElement)->element = OBSGetSceneElement();
+	return pyElement;
+}
+static PyObject *
+py_OBSEnterSceneMutex(PyObject *self, PyObject *args){
+	OBSEnterSceneMutex();
+	return Py_BuildValue("");
+}
+static PyObject *
+py_OBSLeaveSceneMutex(PyObject *self, PyObject *args){
+	OBSLeaveSceneMutex();
+	return Py_BuildValue("");
+}
+static PyObject *
+py_OBSSetScene(PyObject *self, PyObject *args){
+
+	long argLength = PyTuple_Size(args);
+	if (argLength != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	PyObject *name, *py_bPost;
+
+	if (!PyArg_ParseTuple(args, "OO", &name, &py_bPost)){
+		return NULL;
+	}
+	wchar_t *wname = pyObjectToWSTR(name);
+
+	if ( wname == NULL){
+		return NULL;
+	}
+
+	bool bPost;
+	if (PyObject_IsTrue(py_bPost)){
+		bPost = true;
+	}
+	else{
+		bPost = false;
+	}
+
+	bool ret = OBSSetScene(wname, bPost);
+	delete[] wname;
+
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+
+/*
+static PyObject *
+py_OBSGetIn1To1Mode(PyObject *self, PyObject *args){
+	bool ret = OBSGetIn1To1Mode();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+*/
+static PyObject *
+py_OBSUseMultithreadedOptimizations(PyObject *self, PyObject *args){
+	bool ret = OBSUseMultithreadedOptimizations();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+static PyObject *
+py_OBSGetStreaming(PyObject *self, PyObject *args){
+	bool ret = OBSGetStreaming();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+static PyObject *
+py_OBSGetPreviewOnly(PyObject *self, PyObject *args){
+	bool ret = OBSGetPreviewOnly();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+static PyObject *
+py_OBSGetRecording (PyObject *self, PyObject *args){
+	bool ret = OBSGetRecording();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+static PyObject *
+py_OBSGetKeepRecording(PyObject *self, PyObject *args){
+	bool ret = OBSGetKeepRecording();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+static PyObject *
+py_OBSSetMicVolume(PyObject *self, PyObject *args){
+
+	long argLength = PyTuple_Size(args);
+	if (argLength != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	float value = 0.0;
+	PyObject *pyFinal;
+
+	if (!PyArg_ParseTuple(args, "fO", &value, &pyFinal)){
+		return NULL;
+	}
+
+	bool finalValue;
+	if (PyObject_IsTrue(pyFinal)){
+		finalValue = true;
+	}
+	else{
+		finalValue = false;
+	}
+
+	OBSSetMicVolume(value, finalValue);
+
+	return Py_BuildValue("");
+}
+static PyObject *
+py_OBSGetMicVolume(PyObject *self, PyObject *args){
+	return PyFloat_FromDouble(OBSGetMicVolume());
+}
+static PyObject *
+py_OBSToggleMicMute(PyObject *self, PyObject *args){
+	OBSToggleMicMute();
+	return Py_BuildValue("");
+}
+static PyObject *
+py_OBSGetMicMuted(PyObject *self, PyObject *args){
+	bool ret = OBSGetMicMuted();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+static PyObject *
+py_OBSSetDesktopVolume(PyObject *self, PyObject *args){
+
+	long argLength = PyTuple_Size(args);
+	if (argLength != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	float value = 0.0;
+	PyObject *pyFinal;
+
+	if (!PyArg_ParseTuple(args, "fO", &value, &pyFinal)){
+		return NULL;
+	}
+
+	bool finalValue;
+	if (PyObject_IsTrue(pyFinal)){
+		finalValue = true;
+	}
+	else{
+		finalValue = false;
+	}
+
+	OBSSetDesktopVolume(value, finalValue);
+
+	return Py_BuildValue("");
+}
+static PyObject *
+py_OBSGetDesktopVolume(PyObject *self, PyObject *args){
+	return PyFloat_FromDouble(OBSGetDesktopVolume());
+}
+static PyObject *
+py_OBSToggleDesktopMute(PyObject *self, PyObject *args){
+	OBSToggleDesktopMute();
+	return Py_BuildValue("");
+}
+static PyObject *
+py_OBSGetDesktopMuted(PyObject *self, PyObject *args){
+	bool ret = OBSGetDesktopMuted();
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
+}
+
+static PyObject *
+py_OBSGetCurDesktopVolumeStats(PyObject *self, PyObject *args){
+	float rms, max, peak;
+	OBSGetCurDesktopVolumeStats(&rms,&max,&peak);
+	PyObject *argList = Py_BuildValue("fff", rms, max,peak);
+	return argList;
+
+}
+
+
+static PyObject *
+py_OBSGetCurMicVolumeStats(PyObject *self, PyObject *args){
+	float rms, max, peak;
+	OBSGetCurMicVolumeStats(&rms, &max, &peak);
+	PyObject *argList = Py_BuildValue("fff", rms, max, peak);
+	return argList;
+
+}
+
+static PyObject *
+py_OBSAddShutdownFunction(PyObject *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+
+	PyObject *pyFunc,*pyStr;
+
+	if (!PyArg_ParseTuple(args, "OO", &pyFunc,&pyStr)){
+		return NULL;
+	}
+	PythonPlugin *pyPlug = PythonPlugin::instance;
+	if (pyPlug == NULL){
+		Log(TEXT("Python instance Does not exist"));
+	}
+	
+
+	wchar_t *wstr = pyObjectToWSTR(pyStr);
+	if (wstr == NULL){
+		return NULL;
+	}
+
+	Py_INCREF(pyFunc);
+	pyPlug->addShutdownFunction(String(wstr), pyFunc);
+
+
+	return Py_BuildValue("");
+}
+
+
+
+
+
+
+
 static PyMethodDef pyOBS_methods[] = {
 		{ "GetAPIVersion", py_OBSGetAPIVersion, METH_VARARGS, "Gets OBS API version" },
 		{ "GetSceneName", py_OBSGetSceneName, METH_VARARGS, "Gets OBS scene name" },
@@ -311,7 +590,31 @@ static PyMethodDef pyOBS_methods[] = {
 		{ "GetImageSource", py_GetImageSource, METH_VARARGS, "Gets the imagesource python object" },
 		{ "CreateHotKey", py_OBSCreateHotKey, METH_VARARGS, "Creates a hotkey" },
 		{ "DeleteHotKey", py_OBSDeleteHotKey, METH_VARARGS, "Creates a hotkey" },
+		{ "GetSceneListElement", py_OBSGetSceneListElement, METH_VARARGS, "GetSceneListElement" },
+		{ "GetGlobalSourceListElement", py_OBSGetGlobalSourceListElement, METH_VARARGS, "GetGlobalSourceListElement" },
+		{ "GetSceneElement", py_OBSGetSceneElement, METH_VARARGS, "GetSceneElement" },
+		{ "EnterSceneMutex", py_OBSEnterSceneMutex, METH_VARARGS, "EnterSceneMutex" },
+		{ "LeaveSceneMutex", py_OBSLeaveSceneMutex, METH_VARARGS, "LeaveSceneMutex" },
+		{ "SetScene", py_OBSSetScene, METH_VARARGS, "SetScene" },
+		//{ "GetIn1To1Mode", py_OBSGetIn1To1Mode, METH_VARARGS, "GetIn1To1Mode" },
+		{ "UseMultithreadedOptimizations", py_OBSUseMultithreadedOptimizations, METH_VARARGS, "UseMultithreadedOptimizations" },
+		{ "GetStreaming", py_OBSGetStreaming, METH_VARARGS, "GetStreaming" },
+		{ "GetPreviewOnly", py_OBSGetPreviewOnly, METH_VARARGS, "GetPreviewOnly" },
+		{ "GetRecording", py_OBSGetRecording, METH_VARARGS, "GetRecording" },
+		{ "GetKeepRecording", py_OBSGetKeepRecording, METH_VARARGS, "GetKeepRecording" },
+		{ "SetMicVolume", py_OBSSetMicVolume, METH_VARARGS, "SetMicVolume" },
+		{ "GetMicVolume", py_OBSGetMicVolume, METH_VARARGS, "GetMicVolume" },
+		{ "ToggleMicMute", py_OBSToggleMicMute, METH_VARARGS, "ToggleMicMute" },
+		{ "GetMicMuted", py_OBSGetMicMuted, METH_VARARGS, "GetMicMuted" },
+		{ "SetDesktopVolume", py_OBSSetDesktopVolume, METH_VARARGS, "SetDesktopVolume" },
+		{ "GetDesktopVolume", py_OBSGetDesktopVolume, METH_VARARGS, "GetDesktopVolume" },
+		{ "ToggleDesktopMute", py_OBSToggleDesktopMute, METH_VARARGS, "ToggleDesktopMute" },
+		{ "GetDesktopMuted", py_OBSGetDesktopMuted, METH_VARARGS, "GetDesktopMuted" },
+		{ "GetCurDesktopVolumeStats", py_OBSGetCurDesktopVolumeStats, METH_VARARGS, "GetCurDesktopVolumeStats" },
+		{ "GetCurMicVolumeStats", py_OBSGetCurMicVolumeStats, METH_VARARGS, "GetCurMicVolumeStats" },
 		{ "Log", py_OBSLog, METH_VARARGS, "Writes to the OBS log" },
+		{ "AddShutdownFunction", py_OBSAddShutdownFunction, METH_VARARGS, "Adds a function to be run at shutdown, limited to one per module" },
+
 		{ NULL, NULL, 0, NULL }
 };
 

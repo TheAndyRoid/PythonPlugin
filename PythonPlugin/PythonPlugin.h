@@ -12,14 +12,24 @@
 #include "CppImageSource.h"
 
 
-
-
-
-
 #include <map>
 
+	
 
 #define EXTERN_DLL_EXPORT extern "C" __declspec(dllexport)
+
+	struct StringComp
+	{
+		bool operator()(const String& lhs, const String& rhs)
+		const {
+			return scmp(lhs,rhs)>0;
+		}
+	};
+
+	typedef std::map<String, PyObject*,StringComp> source_map;
+	typedef std::map<String, source_map,StringComp> scene_map;
+	typedef std::map<String, PyObject*, StringComp> shutdown_map;
+
 
 class PythonPlugin 
 {
@@ -30,11 +40,22 @@ public:
 	PyInterpreterState* interpreterState;
 	void initPython();
 	void finPython();
+	PyObject* getPersistItem(String sceneName, String sourceName);
+	void setPersistItem(String sceneName, String sourceName,PyObject *imgSrc);
+	void clearPersistItems();
+
+
+	void addShutdownFunction(String filename, PyObject *function);
+	void clearShutdownFunctions();
+
 public:
 	PythonPlugin();
 	~PythonPlugin();
 	bool ConfigGUIActive;
 	std::map <unsigned long, PyObject* > hotkeyToCallable;
+
+	scene_map persistantPyObjects;
+	shutdown_map shutdownFunc;
 	
 	 
 	CppImageSource *pImageSource;

@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Noddy.h" />
+    <ClInclude Include="PySceneItem.h" />
+    <ClInclude Include="PyVect4.h" />
     <ClInclude Include="PyXElement.h" />
     <ClInclude Include="PyVect2.h" />
     <ClInclude Include="Localization.h" />

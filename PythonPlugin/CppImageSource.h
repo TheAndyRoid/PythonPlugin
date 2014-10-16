@@ -25,12 +25,14 @@ private:
 	
 	Vect2 imageSize;
 	Texture *texture;
-
+	String scene;
+	String source;
 
 	Texture* MakeTexture();
 	GSColorFormat texFormat = GS_BGRA;
 	GSImageFormat imgFormat = GS_IMAGEFORMAT_BGRA;
 	int imgDepth = 4;
+	bool persistant = false;
 
 	
 
@@ -59,9 +61,11 @@ public:
 	Vect2 size;
 
 	int getBytesPerPixel(){ return imgDepth; };
+	GSImageFormat getImageFormat(){ return imgFormat; };
 	void setupDoubleBuffers(void *A, void *b, long width, long height);
 	void setupSingleBuffer(void* A, long width, long height);
 	bool setupFormats(char *format);
+	void setPersistant(bool value){ persistant = value; };
 
 
 public:
@@ -87,15 +91,28 @@ public:
 
 public:
 	/*Image Source Overloads*/
-	//void Tick(float fSeconds);
+	void Tick(float fSeconds);
 	void Render(const Vect2 &pos, const Vect2 &size);
-	/*
+	void UpdateSettings();
+
+	void BeginScene();
+	void EndScene();
+
+	
 	void GlobalSourceLeaveScene();
 	void GlobalSourceEnterScene();
+	
 
 	void ChangeScene();
-	void UpdateSettings();*/
+
+
 	Vect2 GetSize() const;
+
+	void DrawSprite(Texture *texture, DWORD colour,
+		float x, float y, float z,
+		float x1, float y1, float z1,
+		float x2, float y2, float z2,
+		float x3, float y3, float z3);
 	
 };
 
