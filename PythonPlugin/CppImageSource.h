@@ -62,6 +62,8 @@ public:
 	Texture *GetTexture() { return texture; }
 	void ClearTexture(void* pxdata);
 	void ColourArea(void *pxdata);
+	
+	void CallPythonFunction(char* funcName);
 
 	void getImageFromPython();
 
