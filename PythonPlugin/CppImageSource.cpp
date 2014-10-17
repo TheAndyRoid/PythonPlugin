@@ -137,11 +137,7 @@ void CppImageSource::Tick(float seconds){
 		return;
 	}
 
-	PyObject * OBSModule = PyImport_ImportModule("OBS");
-	if (OBSModule == NULL){
-		Log(TEXT("OBSModule null"));
-	}
-
+	
 	PyObject *argList = Py_BuildValue("(f)", seconds);
 	PyObject *result = PyObject_CallObject(pyTick, argList);
 
@@ -153,7 +149,7 @@ void CppImageSource::Tick(float seconds){
 	Py_XDECREF(argList);
 	Py_XDECREF(pyTick);
 	Py_XDECREF(result);
-	Py_XDECREF(OBSModule);
+
 
 	PyGILState_Release(gstate);
 

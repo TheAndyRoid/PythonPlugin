@@ -521,7 +521,7 @@ pyImageSource_CreateHotKey(pyImageSource *self, PyObject *args){
 		Log(TEXT("Python instance Does not exist"));
 		return NULL;
 	}
-	self->cppImageSource->hotkeyToCallable[key] = callback;
+	self->cppImageSource->hotkeyToCallable[cRet] = callback;
 
 	return Py_BuildValue("O", pyRet);
 }

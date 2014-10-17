@@ -170,6 +170,12 @@ static void STDCALL Hotkey(DWORD key, UPARAM *userData, bool isDown){
 
 	PyObject *argList = Py_BuildValue("(OO)", pyKey, pyIsDown);
 	PyObject *result = PyObject_CallObject(pyFunc, argList);
+
+	
+
+	Py_XDECREF(result);
+	Py_XDECREF(argList);
+	Py_XDECREF(pyKey);
 	pyHasError();
 	PyGILState_Release(gstate);
 	return;
