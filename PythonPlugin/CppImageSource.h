@@ -50,7 +50,7 @@ private:
 	GSColorFormat texFormat = GS_BGRA;
 	GSImageFormat imgFormat = GS_IMAGEFORMAT_BGRA;
 	int imgDepth = 4;
-	bool persistant = false;
+	
 
 	
 
@@ -85,7 +85,7 @@ public:
 	void setupDoubleBuffers(void *A, void *b, long width, long height);
 	void setupSingleBuffer(void* A, long width, long height);
 	bool setupFormats(char *format);
-	void setPersistant(bool value){ persistant = value; };
+	
 
 	String getSourceName(){ return source; };
 	String getSceneName(){ return scene; };

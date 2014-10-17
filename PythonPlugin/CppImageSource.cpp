@@ -27,8 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 
 
-
-
 CppImageSource::CppImageSource(XElement *data)
 {
 
@@ -76,39 +74,15 @@ CppImageSource::~CppImageSource(){
 	pyImageSource* tmp = (pyImageSource*)pyImgSrc;
 	tmp->cppImageSource = NULL;
 
-	bool destroy = true;
-	if (persistant && OBSGetStreaming()){
-	//check if source is still in the scene
-		XElement *sceneList = OBSGetSceneListElement();
-		XElement *scene = sceneList->GetElement(this->scene);
-		if (!scene){
-			//This scene has been destroyed time to die
-			destroy = true;
-		}
-		else{
-			String sceneName = scene->GetName();
-			XElement *sources = scene->GetElement(TEXT("sources"));
-			XElement *source = sources->GetElement(this->source);
-			if (!source){
-				//this sources has been removed from the scene time to die
-				destroy = true;				
-			}
-			else{
-				//scene and source still exist keep the item
-				destroy = false;
-			}
-		}	
-	}else{//Stopped Streaming
-		destroy = true;
-	}
 	
-	if (destroy){
+	
+	
 		
-		if (pyImgSrc != NULL){
-			CallPythonFunction("destructor");
-			Py_XDECREF(pyImgSrc);
-		}				
-	}
+	if (pyImgSrc != NULL){
+		CallPythonFunction("destructor");
+		Py_XDECREF(pyImgSrc);
+	}				
+	
 	
 	
 	pyRender = NULL;

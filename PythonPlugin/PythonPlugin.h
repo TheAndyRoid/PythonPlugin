@@ -53,9 +53,7 @@ class PythonPlugin
 {
 public:
 	static PythonPlugin *instance;
-	HANDLE ghMutex;
-	PyThreadState* renderIntepThread;
-	PyInterpreterState* interpreterState;
+
 	void initPython();
 	void finPython();
 	PyObject* getPersistItem(String sceneName, String sourceName);

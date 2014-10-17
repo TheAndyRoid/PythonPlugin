@@ -204,42 +204,7 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 	//Create Image source
 	pyPlug->pImageSource = new CppImageSource(data);
-	String parent = ((data->GetParent())->GetParent())->GetName();
-	bool persistantObject = false;
-	if (data->GetInt(TEXT("Persistant")) && !(parent == TEXT("global sources"))){
-		persistantObject = true;
-		pyPlug->pImageSource->setPersistant(true);
-	}
-
 	
-	
-	//Check if object aleady exists as persistant
-	//Add to persistant
-	//
-	if (persistantObject ){	
-		PyObject *pyPerst = NULL;
-		pyPerst = pyPlug->getPersistItem(sceneName, sourceName);
-		if (pyPerst != NULL){
-			//Python object already exists yay
-			Log(TEXT("Persistant object detected and found"));
-
-			((pyImageSource*)pyPerst)->cppImageSource = pyPlug->pImageSource;
-			pyPlug->pImageSource->pyImgSrc = (PyObject*)pyPerst;
-			return pyPlug->pImageSource;
-		}
-	}
-	
-
-
-
-
-
-
-	/*
-	DWORD dwWaitResult = WaitForSingleObject(
-		pyPlug->ghMutex,    // handle to mutex
-		INFINITE);  // no time-out interval
-	*/
 
 	String file;
 	String className;
@@ -335,10 +300,7 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 	//ReleaseMutex(pyPlug->ghMutex);
 	if (pyObjectCreated){
-		//Add to persistant
-		if (persistantObject){
-			pyPlug->setPersistItem(sceneName, sourceName, (PyObject*)pyImgSrc);
-		}
+		
 		return pyPlug->pImageSource;
 	}
 	else{
@@ -365,14 +327,6 @@ PythonPlugin::PythonPlugin()
 			AppWarning(TEXT("Uh oh..., unable to dynamically add our localization keys"));
 		}
 	}
-
-	//Create mutex
-	ghMutex = CreateMutex(
-		NULL,              // default security attributes
-		FALSE,             // initially not owned
-		NULL);             // unnamed mutex
-
-
 	
 
 	//Register callbacks with obs
@@ -389,7 +343,6 @@ PythonPlugin::PythonPlugin()
 	int argc = sizeof(argv) / sizeof(char*) - 1;
 	PySys_SetArgv(argc, argv);
 	
-
 
 	//Load the OBS Extension
 	initOBS();
@@ -412,12 +365,6 @@ PythonPlugin::PythonPlugin()
 	
 	PyThreadState *pts = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(pts);
-	
-
-	
-
-
-
 }
 
 
@@ -461,7 +408,7 @@ PythonPlugin::~PythonPlugin()
 	//One cleanup per uinque file
 	clearShutdownFunctions();
 
-	//Cleanup persistant objects
+
 
 
 
@@ -474,8 +421,7 @@ PythonPlugin::~PythonPlugin()
 	Log(TEXT("Python plugin Destroyed"));
 	isDynamicLocale = false;
 	
-	ReleaseMutex(ghMutex);
-	CloseHandle(ghMutex);
+
 }
 
 CTSTR GetPluginName(){
