@@ -214,7 +214,7 @@ static PyObject * pyImageSource_DrawSprite(pyImageSource *self, PyObject *args){
 		if (!PyArg_ParseTuple(args, "kff", &colour,&x, &y)){
 			return NULL;
 		}
-		DrawSprite(tex, colour, x, y);
+		DrawSprite(tex, colour, x, y, x + self->cppImageSource->renderSize.x, y + self->cppImageSource->renderSize.y);
 		break;
 	case 5:		
 		if (!PyArg_ParseTuple(args, "kffff", &colour, &x, &y,&x2,&y2)){
@@ -564,26 +564,26 @@ pyImageSource_DeleteHotKey(pyImageSource *self, PyObject *args){
 /*Method Table*/
 static PyMethodDef pyImageSource_methods[] = {
 		{ "SetBuffers", (PyCFunction)pyImageSource_SetBuffers, METH_VARARGS, "Set which buffers to use for pixeldata and their format" },
-		{ "flipBuffers", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Flips buffers in double buffer mode" },
-		{ "drawSprite", (PyCFunction)pyImageSource_DrawSprite, METH_VARARGS, "Draws front buffer to screen" },
-		{ "render", (PyCFunction)pyImageSource_Render, METH_VARARGS, "Function to be overidden" },
-		{ "updatesettings", (PyCFunction)pyImageSource_UpdateSettings, METH_VARARGS, "Function to be overidden" },
-		{ "beginScene", (PyCFunction)pyImageSource_BeginScene, METH_VARARGS, "Function to be overidden" },
-		{ "endScene", (PyCFunction)pyImageSource_EndScene, METH_VARARGS, "Function to be overidden" },
-		{ "globalSourceEnterScene", (PyCFunction)pyImageSource_GlobalSourceEnterScene, METH_VARARGS, "Function to be overidden" },
-		{ "globalSourceLeaveScene", (PyCFunction)pyImageSource_GlobalSourceLeaveScene, METH_VARARGS, "Function to be overidden" },
+		{ "FlipBuffers", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Flips buffers in double buffer mode" },
+		{ "DrawSprite", (PyCFunction)pyImageSource_DrawSprite, METH_VARARGS, "Draws front buffer to screen" },
+		{ "Render", (PyCFunction)pyImageSource_Render, METH_VARARGS, "Function to be overidden" },
+		{ "UpdateSettings", (PyCFunction)pyImageSource_UpdateSettings, METH_VARARGS, "Function to be overidden" },
+		{ "BeginScene", (PyCFunction)pyImageSource_BeginScene, METH_VARARGS, "Function to be overidden" },
+		{ "EndScene", (PyCFunction)pyImageSource_EndScene, METH_VARARGS, "Function to be overidden" },
+		{ "GlobalSourceEnterScene", (PyCFunction)pyImageSource_GlobalSourceEnterScene, METH_VARARGS, "Function to be overidden" },
+		{ "GlobalSourceLeaveScene", (PyCFunction)pyImageSource_GlobalSourceLeaveScene, METH_VARARGS, "Function to be overidden" },
 		{ "ChangeScene", (PyCFunction)pyImageSource_ChangeScene, METH_VARARGS, "Function to be overidden" },
-		{ "tick", (PyCFunction)pyImageSource_Tick, METH_VARARGS, "Function to be overidden" },
-		{ "setCropping", (PyCFunction)pyImageSource_SetCropping, METH_VARARGS, "Set the draw cropping of the current frame" },
-		{ "getCropping", (PyCFunction)pyImageSource_GetCropping, METH_VARARGS, "Gets cropping of current frame" },
-		{ "destructor", (PyCFunction)pyImageSource_Destructor, METH_VARARGS, "Function to be overidden" },
+		{ "Tick", (PyCFunction)pyImageSource_Tick, METH_VARARGS, "Function to be overidden" },
+		{ "SetCropping", (PyCFunction)pyImageSource_SetCropping, METH_VARARGS, "Set the draw cropping of the current frame" },
+		{ "GetCropping", (PyCFunction)pyImageSource_GetCropping, METH_VARARGS, "Gets cropping of current frame" },
+		{ "Destructor", (PyCFunction)pyImageSource_Destructor, METH_VARARGS, "Function to be overidden" },
 		{ "load", (PyCFunction)pyImageSource_Load, METH_VARARGS, "Function to be overidden" },
 		{ "export", (PyCFunction)pyImageSource_Export, METH_VARARGS, "Function to be overidden" },
 		{ "toBackground", (PyCFunction)pyImageSource_ToBackground, METH_VARARGS, "Function to be overidden" },
 		{ "toForeground", (PyCFunction)pyImageSource_ToForeground, METH_VARARGS, "Function to be overidden" },
-		{ "getAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_VARARGS, "Gets memory address for buffer for use with ctypes" },
-		{ "getBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
-		{ "copyToBackBuffer", (PyCFunction)pyImageSource_copyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
+		{ "GetAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_VARARGS, "Gets memory address for buffer for use with ctypes" },
+		{ "GetBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
+		{ "CopyToBackBuffer", (PyCFunction)pyImageSource_copyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
 		{ "CreateHotKey", (PyCFunction)pyImageSource_CreateHotKey, METH_VARARGS, "Creates a hotkey" },
 		{ "DeleteHotKey", (PyCFunction)pyImageSource_DeleteHotKey, METH_VARARGS, "Creates a hotkey" },
 	{ NULL }  /* Sentinel */

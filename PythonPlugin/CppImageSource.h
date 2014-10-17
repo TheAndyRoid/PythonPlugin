@@ -54,10 +54,12 @@ private:
 	GSImageFormat imgFormat = GS_IMAGEFORMAT_BGRA;
 	int imgDepth = 4;
 	
+	
 
 	
 
 public:
+	Vect2 renderSize;
 	hotkey_map hotkeyToCallable;
 	CppImageSource(XElement *data);
 	~CppImageSource();

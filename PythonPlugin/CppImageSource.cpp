@@ -88,7 +88,7 @@ CppImageSource::~CppImageSource(){
 	
 		
 	if (pyImgSrc != NULL){
-		CallPythonFunction("destructor");
+		CallPythonFunction("Destructor");
 		pyImageSource* tmp = (pyImageSource*)pyImgSrc;
 		tmp->cppImageSource = NULL;
 		Py_XDECREF(pyImgSrc);
@@ -126,7 +126,7 @@ void CppImageSource::Tick(float seconds){
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
 
-	PyObject *pyTick = PyObject_GetAttrString(pyImgSrc, (char*) "tick");
+	PyObject *pyTick = PyObject_GetAttrString(pyImgSrc, (char*) "Tick");
 	if (pyTick != NULL && PyCallable_Check(pyTick)){
 
 	}
@@ -157,7 +157,7 @@ void CppImageSource::Tick(float seconds){
 void CppImageSource::UpdateSettings(){
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
-	CallPythonFunction("updatesettings");
+	CallPythonFunction("UpdateSettings");
 	PyGILState_Release(gstate);
 
 }
@@ -165,7 +165,8 @@ void CppImageSource::UpdateSettings(){
 
 void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	
-
+	renderSize.x = size.x;
+	renderSize.y = size.y;
 
 	PythonPlugin *pyPlug = PythonPlugin::instance;
 	if (pyPlug == NULL){
@@ -186,7 +187,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 
 
-		pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "render");
+		pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "Render");
 		if (pyRender != NULL && PyCallable_Check(pyRender)){
 			
 		}
@@ -412,8 +413,6 @@ void CppImageSource::getImageFromPython(){
 
 	 texture = CreateTexture(imageSize.x, imageSize.y, texFormat, nullptr, FALSE, FALSE);
 	 pixelFront = pixelA;
-	 ClearTexture(pixelA);
-	 ClearTexture(pixelB);
 	 return texture;
  }
  
@@ -546,7 +545,7 @@ void CppImageSource::getImageFromPython(){
  void CppImageSource::BeginScene(){ 
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
-	 CallPythonFunction("beginScene");
+	 CallPythonFunction("BeginScene");
 	 PyGILState_Release(gstate);
  }
 
@@ -554,14 +553,14 @@ void CppImageSource::getImageFromPython(){
  void CppImageSource::EndScene(){
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
-	 CallPythonFunction("endScene");
+	 CallPythonFunction("EndScene");
 	 PyGILState_Release(gstate);
  }
 
  void CppImageSource::GlobalSourceEnterScene(){	 
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
-	 CallPythonFunction("globalSourceEnterScene");
+	 CallPythonFunction("GlobalSourceEnterScene");
 	 PyGILState_Release(gstate);
  }
 
@@ -569,7 +568,7 @@ void CppImageSource::getImageFromPython(){
  void CppImageSource::GlobalSourceLeaveScene(){
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
-	 CallPythonFunction("globalSourceLeaveScene");
+	 CallPythonFunction("GlobalSourceLeaveScene");
 	 PyGILState_Release(gstate);
  }
 
@@ -577,7 +576,7 @@ void CppImageSource::getImageFromPython(){
  void CppImageSource::ChangeScene(){
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
-	 CallPythonFunction("changeScene");
+	 CallPythonFunction("ChangeScene");
 	 PyGILState_Release(gstate);
  }
 

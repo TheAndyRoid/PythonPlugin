@@ -783,10 +783,6 @@ static PyObject *pyXElement_Export(PyXElement *self, PyObject *args){
 }
 
 
-
-
-
-
 static PyMemberDef PyXElement_members[] = {
 		{ NULL }  /* Sentinel */
 };
