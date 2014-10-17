@@ -231,78 +231,11 @@ py_OBSLog(PyObject *self, PyObject *args){
 	return Py_BuildValue("");
 }
 
-static PyObject *
-py_OBSCreateHotKey(PyObject *self, PyObject *args){
-	long argLength = PyTuple_Size(args);
-	if (argLength != 2){
-		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
-		return NULL;
-	}
-
-	PyObject *callback;
-	ULONG key;
-
-	if (!PyArg_ParseTuple(args, "kO", &key,&callback)){
-		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
-		return NULL;
-	}
-	
-	if (!PyCallable_Check(callback)){
-		PyErr_SetString(PyExc_TypeError, "Callback argument was not callable");
-		return NULL;
-	}
-
-	UINT cRet;
-	PyObject *pyRet;
-	cRet = OBSCreateHotkey(key, (OBSHOTKEYPROC)Hotkey, (UPARAM)callback);
-	pyRet = PyInt_FromLong(cRet);
-	Py_INCREF(callback);
-	
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return NULL;
-	}
-	pyPlug->hotkeyToCallable[key] = callback;
-
-	return Py_BuildValue("O",pyRet);
-}
 
 
 
-static PyObject *
-py_OBSDeleteHotKey(PyObject *self, PyObject *args){
-	long argLength = PyTuple_Size(args);
-	if (argLength != 1){
-		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
-		return NULL;
-	}
 
-	
-	ULONG key;
 
-	if (!PyArg_ParseTuple(args, "k", &key)){
-		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
-		return NULL;
-	}
-
-	OBSDeleteHotkey(key);
-
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return NULL;
-	}
-
-	
-	if (pyPlug->hotkeyToCallable.find(key) != pyPlug->hotkeyToCallable.end()){
-		PyObject *callback = pyPlug->hotkeyToCallable[key];
-		Py_DECREF(callback);
-		pyPlug->hotkeyToCallable.erase(key);
-	}
-
-	return Py_BuildValue("");
-}
 
 
 static PyObject *
@@ -607,8 +540,6 @@ static PyMethodDef pyOBS_methods[] = {
 		{ "StartStopPreview", py_OBSStartStopPreview, METH_VARARGS, "Starts or Stops Preview" },
 		{ "StartStopRecording", py_OBSStartStopRecording, METH_VARARGS, "Starts or Stops Recording" },
 		{ "GetImageSource", py_GetImageSource, METH_VARARGS, "Gets the imagesource python object" },
-		{ "CreateHotKey", py_OBSCreateHotKey, METH_VARARGS, "Creates a hotkey" },
-		{ "DeleteHotKey", py_OBSDeleteHotKey, METH_VARARGS, "Creates a hotkey" },
 		{ "GetSceneListElement", py_OBSGetSceneListElement, METH_VARARGS, "GetSceneListElement" },
 		{ "GetGlobalSourceListElement", py_OBSGetGlobalSourceListElement, METH_VARARGS, "GetGlobalSourceListElement" },
 		{ "GetSceneElement", py_OBSGetSceneElement, METH_VARARGS, "GetSceneElement" },

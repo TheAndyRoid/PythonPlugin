@@ -464,19 +464,7 @@ void OnStopStream()
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
 
-	for (std::map<unsigned long, PyObject*>::iterator it = pyPlug->hotkeyToCallable.begin(); it != pyPlug->hotkeyToCallable.end(); ++it){
-		PyObject* callback = it->second;
-		Py_DECREF(callback);
-	}
-
-	pyPlug->hotkeyToCallable.clear();
-
-
-
-	pyPlug->clearPersistItems();
-
 	
-
 
 
 
@@ -484,78 +472,6 @@ void OnStopStream()
 	return;
 }
 
-void PythonPlugin::setPersistItem(String sceneName, String sourceName,PyObject *pyImgSrc){
-	
-		if (persistantPyObjects.count(sceneName)){
-			//scene already exists
-			//get source map
-			source_map &sourceMap = persistantPyObjects[sceneName];
-			if (sourceMap.count(sourceName)){
-				//source already exists What?
-			}
-			else{
-				sourceMap[sourceName] = (PyObject*)pyImgSrc;
-			}
-
-		}
-		else{
-			//add scene and source
-			persistantPyObjects[sceneName][sourceName] = (PyObject*)pyImgSrc;
-		}
-}
-
-PyObject * PythonPlugin::getPersistItem(String sceneName, String sourceName){
-
-	if (persistantPyObjects.count(sceneName)){
-
-		if (persistantPyObjects[sceneName].count(sourceName)){
-
-			return persistantPyObjects[sceneName][sourceName];
-		}
-				
-	}
-	return NULL;
-	
-
-}
-
-void PythonPlugin::clearPersistItems(){
-	//Get persistant items that are in the current scene
-
-	XElement* scene = OBSGetSceneElement();
-	String skipScene = scene->GetName();
-
-
-
-
-
-
-
-	for (scene_map::iterator i = persistantPyObjects.begin(); i != persistantPyObjects.end(); ++i){
-		if (i->first == skipScene){
-			continue;
-		}
-		source_map sourceMap = i->second;
-		for (source_map::iterator j = sourceMap.begin(); j != sourceMap.end(); ++j){
-			PyObject* pyImage = j->second;
-			PyObject * destr;
-			//call destructor
-			if (pyImage != NULL){
-				destr = PyObject_GetAttrString(pyImage, (char*) "destructor");
-				if (PyCallable_Check(destr)){
-					PyObject *argList = Py_BuildValue("()");
-					PyObject_CallObject(destr, argList);
-					Py_DECREF(argList);
-				}
-				Py_DECREF(destr);
-			}
-			
-			Py_DECREF(pyImage);
-		}
-	}
-
-	persistantPyObjects.clear();
-}
 
 void PythonPlugin::addShutdownFunction(String filename, PyObject *function){
 

@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 #include <Python.h>
 #include "OBSApi.h"
+#include "utils.h"
 
 
 
@@ -36,6 +37,8 @@ BGR,
 BGRA,
 };
 
+
+typedef std::map <unsigned long, PyObject* > hotkey_map;
 class CppImageSource : public ImageSource{
 
 
@@ -55,6 +58,7 @@ private:
 	
 
 public:
+	hotkey_map hotkeyToCallable;
 	CppImageSource(XElement *data);
 	~CppImageSource();
 	PyObject *pyImgSrc = NULL;
@@ -141,3 +145,32 @@ public:
 
 
 
+static void STDCALL Hotkey(DWORD key, UPARAM *userData, bool isDown){
+
+	PyGILState_STATE gstate;
+	gstate = PyGILState_Ensure();
+
+
+	//userData is a pointer to a python callable function
+	PyObject *pyFunc = (PyObject *)userData;
+	if (pyFunc == NULL || !PyCallable_Check(pyFunc)|| pyFunc->ob_refcnt == 0){
+		Log(TEXT("Hotkey callback is not callable"));
+		PyGILState_Release(gstate);
+		return;
+	}
+	PyObject *pyIsDown;
+	if (isDown){
+		pyIsDown = Py_True;
+	}
+	else{
+		pyIsDown = Py_False;
+	}
+
+	PyObject *pyKey = PyLong_FromUnsignedLong(key);
+
+	PyObject *argList = Py_BuildValue("(OO)", pyKey, pyIsDown);
+	PyObject *result = PyObject_CallObject(pyFunc, argList);
+	pyHasError();
+	PyGILState_Release(gstate);
+	return;
+}

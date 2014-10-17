@@ -69,10 +69,19 @@ CppImageSource::~CppImageSource(){
 	gstate = PyGILState_Ensure();
 	
 
+	//remove hotkeys
+	for (hotkey_map::iterator it = hotkeyToCallable.begin(); it != hotkeyToCallable.end(); ++it){
+		OBSDeleteHotkey(it->first);
+		PyObject* callback = it->second;
+		Py_DECREF(callback);
+	}
+
+	hotkeyToCallable.clear();
+
+
 	Py_XDECREF(pyRender);
 
-	pyImageSource* tmp = (pyImageSource*)pyImgSrc;
-	tmp->cppImageSource = NULL;
+	
 
 	
 	
@@ -80,6 +89,8 @@ CppImageSource::~CppImageSource(){
 		
 	if (pyImgSrc != NULL){
 		CallPythonFunction("destructor");
+		pyImageSource* tmp = (pyImageSource*)pyImgSrc;
+		tmp->cppImageSource = NULL;
 		Py_XDECREF(pyImgSrc);
 	}				
 	

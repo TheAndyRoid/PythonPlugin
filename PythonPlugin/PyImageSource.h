@@ -489,6 +489,78 @@ static PyObject * pyImageSource_ChangeScene(pyImageSource *self){
 }
 
 
+static PyObject *
+pyImageSource_CreateHotKey(pyImageSource *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+
+	PyObject *callback;
+	ULONG key;
+
+	if (!PyArg_ParseTuple(args, "kO", &key, &callback)){
+		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
+		return NULL;
+	}
+
+	if (!PyCallable_Check(callback)){
+		PyErr_SetString(PyExc_TypeError, "Callback argument was not callable");
+		return NULL;
+	}
+
+	UINT cRet;
+	PyObject *pyRet;
+	cRet = OBSCreateHotkey(key, (OBSHOTKEYPROC)Hotkey, (UPARAM)callback);
+	pyRet = PyInt_FromLong(cRet);
+	Py_INCREF(callback);
+
+	PythonPlugin *pyPlug = PythonPlugin::instance;
+	if (pyPlug == NULL){
+		Log(TEXT("Python instance Does not exist"));
+		return NULL;
+	}
+	self->cppImageSource->hotkeyToCallable[key] = callback;
+
+	return Py_BuildValue("O", pyRet);
+}
+
+static PyObject *
+pyImageSource_DeleteHotKey(pyImageSource *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+
+
+	ULONG key;
+
+	if (!PyArg_ParseTuple(args, "k", &key)){
+		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
+		return NULL;
+	}
+
+	OBSDeleteHotkey(key);
+
+	PythonPlugin *pyPlug = PythonPlugin::instance;
+	if (pyPlug == NULL){
+		Log(TEXT("Python instance Does not exist"));
+		return NULL;
+	}
+
+
+	if (self->cppImageSource->hotkeyToCallable.find(key) != self->cppImageSource->hotkeyToCallable.end()){
+		PyObject *callback = self->cppImageSource->hotkeyToCallable[key];
+		Py_DECREF(callback);
+		self->cppImageSource->hotkeyToCallable.erase(key);
+	}
+	return Py_BuildValue("");
+}
+
+
+
 /*Method Table*/
 static PyMethodDef pyImageSource_methods[] = {
 		{ "SetBuffers", (PyCFunction)pyImageSource_SetBuffers, METH_VARARGS, "Set which buffers to use for pixeldata and their format" },
@@ -512,6 +584,8 @@ static PyMethodDef pyImageSource_methods[] = {
 		{ "getAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_VARARGS, "Gets memory address for buffer for use with ctypes" },
 		{ "getBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
 		{ "copyToBackBuffer", (PyCFunction)pyImageSource_copyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
+		{ "CreateHotKey", (PyCFunction)pyImageSource_CreateHotKey, METH_VARARGS, "Creates a hotkey" },
+		{ "DeleteHotKey", (PyCFunction)pyImageSource_DeleteHotKey, METH_VARARGS, "Creates a hotkey" },
 	{ NULL }  /* Sentinel */
 };
 
