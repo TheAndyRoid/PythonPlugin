@@ -47,6 +47,9 @@ static wchar_t * pyObjectToWSTR(PyObject *str){
 }
 
 
+
+
+
 static PyObject * CTSTRtoPyUnicode(const wchar_t *ctstr){
 	if (ctstr == NULL){
 		return Py_BuildValue("");
@@ -197,4 +200,14 @@ static bool isPyObjectBaseClass(PyObject *obj, String *type ){
 	return false;
 
 
+}
+
+
+static void PythonRunString(String toRun){
+
+	char *cRun = new char[toRun.DataLength()];
+	wcstombs(cRun, TSTR(toRun), toRun.DataLength());
+	
+	PyRun_SimpleString(cRun);
+	delete[]cRun;
 }
