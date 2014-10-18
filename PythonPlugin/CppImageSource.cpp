@@ -49,6 +49,7 @@ CppImageSource::CppImageSource(XElement *data)
 	pyImgSrc = NULL;
 	
 	
+	
 }
 
 CppImageSource::~CppImageSource(){	

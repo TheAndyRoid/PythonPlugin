@@ -348,10 +348,27 @@ PythonPlugin::PythonPlugin()
 	initOBS();
 
 
-	PyRun_SimpleString("import sys,os");
-	PyRun_SimpleString("sys.path.append(\"./plugins/Python\")");
-	PyRun_SimpleString("sys.stdout = open('./plugins/Python/pyOut.txt','w',0)");
-	PyRun_SimpleString("sys.stderr = open('./plugins/Python/pyErr.txt','w',0)");
+	String path = OBSGetPluginDataPath();
+	path.FindReplace(TEXT("\\"), TEXT("/"));
+	path = path + String("/Python");
+
+
+
+
+
+
+
+	PythonRunString(String("import sys,os"));
+
+	PythonRunString(String("os.makedirs('") + path + String("')"));
+	PythonRunString(String("sys.path.append('") + path + String("')"));
+
+
+	PythonRunString(String("sys.stdout = open('") + path + String("/stdOut.txt','w',0)"));
+	PythonRunString(String("sys.stderr = open('") + path + String("/stdErr.txt','w',0)"));
+
+
+
 	
 	
 

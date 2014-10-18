@@ -23,7 +23,7 @@ import OBS
 class ColourSquare(OBS.ImageSource):    
     def __init__(self,config):
         OBS.Log("__init__")
-
+    
         self.width = 300
         self.height = 300
         self.bpp = 4
@@ -84,6 +84,7 @@ class ColourSquare(OBS.ImageSource):
         self.BeginScene()
 
     def Tick(self,seconds):
+        print "tick"
         pass
     
     def BeginScene(self):
