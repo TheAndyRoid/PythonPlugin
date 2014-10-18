@@ -58,7 +58,6 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 	/*Called when the element is created at stream start.*/
 
-	//This is called when the source goes live
 
 
 	//Get the plugin instance
@@ -136,7 +135,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 			((PyXElement*)pyConfig)->element = dataElement;
 
 			argList = Py_BuildValue("(O)", pyConfig);
-			PyObject_CallObject(pFunc, argList);			
+			PyObject *ret = PyObject_CallObject(pFunc, argList);			
 
 			if (pyHasError()){
 				Py_XDECREF(pModule);
@@ -171,7 +170,17 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	if (isMissingDataElement){
 		//The setup gui has run now run the specified gui
 		// check if the required element now exist and restart gui
-		return ConfigureVideoSource(element, false);
+		
+		//check if the elements have been added to config. if not then setup gui failed.
+		String log = dataElement->GetString(TEXT("PythonGUIFile"));
+
+		if (!dataElement->GetString(TEXT("PythonGUIFile")) || !dataElement->GetString(TEXT("PythonGUIClass"))
+			|| !dataElement->GetString(TEXT("PythonMainFile")) || !dataElement->GetString(TEXT("PythonMainClass"))){
+			return false;
+		}
+		else{
+			return ConfigureVideoSource(element, false);
+		}
 	}
 	else{
 		return true;

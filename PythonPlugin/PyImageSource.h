@@ -421,7 +421,7 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	return Py_BuildValue("");
 }
 
-static PyObject * pyImageSource_copyToBackBuffer(pyImageSource *self, PyObject *args){
+static PyObject * pyImageSource_CopyToBackBuffer(pyImageSource *self, PyObject *args){
 
 	long argLength = PyTuple_Size(args);
 	if (argLength != 1){
@@ -583,7 +583,7 @@ static PyMethodDef pyImageSource_methods[] = {
 		{ "toForeground", (PyCFunction)pyImageSource_ToForeground, METH_VARARGS, "Function to be overidden" },
 		{ "GetAddrBackBuffer", (PyCFunction)pyImageSource_GetAddrBackBuffer, METH_VARARGS, "Gets memory address for buffer for use with ctypes" },
 		{ "GetBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
-		{ "CopyToBackBuffer", (PyCFunction)pyImageSource_copyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
+		{ "CopyToBackBuffer", (PyCFunction)pyImageSource_CopyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
 		{ "CreateHotKey", (PyCFunction)pyImageSource_CreateHotKey, METH_VARARGS, "Creates a hotkey" },
 		{ "DeleteHotKey", (PyCFunction)pyImageSource_DeleteHotKey, METH_VARARGS, "Creates a hotkey" },
 	{ NULL }  /* Sentinel */
