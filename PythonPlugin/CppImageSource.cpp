@@ -59,12 +59,6 @@ CppImageSource::~CppImageSource(){
 		Log(TEXT("Python instance Does not exist"));
 	}
 
-	/*
-	DWORD dwWaitResult = WaitForSingleObject(
-		pyPlug->ghMutex,    // handle to mutex
-		INFINITE);  // no time-out interval
-	*/
-
 	
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
@@ -100,10 +94,6 @@ CppImageSource::~CppImageSource(){
 	pyRender = NULL;
 	pyImgSrc = NULL;
 	Log(TEXT("Python Source Destructor"));
-	
-	
-	
-	//ReleaseMutex(pyPlug->ghMutex);
 	
 
 	if (texture) {
@@ -155,13 +145,7 @@ void CppImageSource::Tick(float seconds){
 	PyGILState_Release(gstate);
 
 }
-void CppImageSource::UpdateSettings(){
-	PyGILState_STATE gstate;
-	gstate = PyGILState_Ensure();
-	CallPythonFunction("UpdateSettings");
-	PyGILState_Release(gstate);
 
-}
 
 
 void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
@@ -177,16 +161,13 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 
 	if (!texture) {
+		//Texture is created when Python calls SetBuffers()
 		return;
-		//texture = MakeTexture();
 	}
 		
 
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
-
-
-
 
 		pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "Render");
 		if (pyRender != NULL && PyCallable_Check(pyRender)){
@@ -201,9 +182,6 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 		}
 	
 
-	//Log(TEXT("Render"));
-
-	//PyObject *obj = py_CreateVect2(size);
 	PyObject * OBSModule = PyImport_ImportModule("OBS");
 	if (OBSModule == NULL){
 		Log(TEXT("OBSModule null"));
@@ -226,7 +204,6 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 	Py_DECREF(argList);
 	argList = Py_BuildValue("(dd)", pos.x, pos.y);
-	//PyObject *pyPos = PyObject_CallObject((PyObject *)&PyVect2_Object, argList);
 	PyObject *pyPos = PyObject_CallObject(vect2, argList);
 	if (pySize == NULL){
 		Log(TEXT("obj null"));
@@ -246,12 +223,6 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	}
 
 	
-	//Py_DECREF(argList);
-
-	//PyObject *render = PyObject_GetAttr(pyImgSrc, PyString_FromString("render"));
-
-	//PyObject *arglist = Py_BuildValue("");
-	//PyObject *result = PyObject_CallObject(render, arglist);*/
 	
 	Py_XDECREF(OBSModule);
 	Py_XDECREF(pySize);
@@ -260,23 +231,6 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	Py_XDECREF(argList);
 	Py_XDECREF(result);
 	
-	
-
-
-	
-	
-	//ColourArea();
-	/*
-	if (texture){
-		//getImageFromPython();
-		if (getFrontBuffer() != NULL){
-			texture->SetImage(getFrontBuffer(), imgFormat, texture->Width() * imgDepth);
-			//Draw the texture
-			//Top left and bottum right coords
-			//DrawSprite(texture, 0xFFFFFFFF, pos.x, pos.y, pos.x + size.x, size.y + pos.y);
-		}
-		
-	}*/
 
 	PyGILState_Release(gstate);
 	
@@ -313,59 +267,6 @@ void CppImageSource::flipPixelBuffers(){
 	}
 
 }
-
-
-
-void CppImageSource::getImageFromPython(){
-	
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return;
-	}
-
-	/*
-	DWORD dwWaitResult = WaitForSingleObject(
-		pyPlug->ghMutex,    // handle to mutex
-		1);  // time-out  in ms
-	
-	if (dwWaitResult == WAIT_TIMEOUT){
-		return;
-	}
-
-	*/
-	
-	PyGILState_STATE gstate;
-	gstate = PyGILState_Ensure();
-
-	//Try to get the object
-	if (pyImgSrc == NULL){
-		Log(TEXT("No pyImageSource"));
-		PyGILState_Release(gstate);
-		//ReleaseMutex(pyPlug->ghMutex);
-
-		return;
-	}
-	PyObject *pyImageData = PyObject_GetAttr(pyImgSrc, PyString_FromString("data"));
-
-
-
-	//int size = PyString_GET_SIZE(pyImageData);
-	//char* data = NULL;
-
-	// point to the address from ctypes ''feels hacky''
-	//void* data = (void*)PyInt_AsUnsignedLongMask(pyImageData);
-	//memcpy(pixelData, data, texture->Width() * 4 * texture->Height());
-	//PyString_AsStringAndSize(pyImageData,&data,&size);
-
-	
-	
-	Py_XDECREF(pyImageData);
-
-	PyGILState_Release(gstate);
-}
-
-
 
 
 
@@ -453,8 +354,6 @@ void CppImageSource::getImageFromPython(){
 	 this->texture = MakeTexture();
 
  }
-
-
 
 
  bool CppImageSource::setupFormats(char* format){
@@ -581,6 +480,13 @@ void CppImageSource::getImageFromPython(){
 	 PyGILState_Release(gstate);
  }
 
+ void CppImageSource::UpdateSettings(){
+	 PyGILState_STATE gstate;
+	 gstate = PyGILState_Ensure();
+	 CallPythonFunction("UpdateSettings");
+	 PyGILState_Release(gstate);
+
+ }
 
 
 

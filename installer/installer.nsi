@@ -1,7 +1,7 @@
 ; Script generated with the Venis Install Wizard
 
 ; Define your application name
-!define VERSION "0.2.1"
+!define VERSION "0.2.2"
 !define APPNAME "OBS Python Plugin"
 !define APPNAMEANDVERSION "${APPNAME} ${VERSION}"
 
@@ -13,7 +13,7 @@
 Name "${APPNAMEANDVERSION}"
 InstallDir "$PROGRAMFILES32\OBS\plugins"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
-OutFile "${APPNAME}-${VERSION}-Installer.exe"
+OutFile "OBSPythonPlugin-${VERSION}-Installer.exe"
 
 ; Modern interface settings
 !include "MUI.nsh"
@@ -34,11 +34,6 @@ OutFile "${APPNAME}-${VERSION}-Installer.exe"
 
 Section "OBS Python Plugin" Section1
 	
-	ReadEnvStr $0 PYTHONPATH
-	${If} $0 == ''
-		MessageBox MB_OK|MB_ICONSTOP "Could not find 'PYTHONPATH' Environment Variable. $\nCheck Python 2.7 is installed and environment variable 'PYTHONPATH' exists."
-		Abort "Could not find 'PYTHONPATH' Environment Variable."
-	${EndIf}
 
 	; Set Section properties
 	SetOverwrite on
@@ -48,15 +43,15 @@ Section "OBS Python Plugin" Section1
 	SetOutPath "${DLLDIR}\"
 	File "..\PythonPlugin\Win32\Release\PythonPlugin.dll"
 	
-	;Copy DefaultGUI Script
+	;Copy Example Script
 	
 	SetOutPath "${SCRIPTSDIR}\"
 	File "..\ExampleScripts\ColourSquare.py"
+	File "..\PythonPlugin\DefaultGUI.py"	
 	
 	;Copy Unistaller	
 	
 	SetOutPath "${UNINSTALLDIR}\"	
-	File "..\PythonPlugin\DefaultGUI.py"	
 	
 	
 	CreateDirectory "$SMPROGRAMS\OBS Python Plugin"

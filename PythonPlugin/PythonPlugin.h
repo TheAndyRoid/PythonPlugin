@@ -54,7 +54,6 @@ public:
 	static PythonPlugin *instance;
 
 	void initPython();
-	void finPython();
 
 
 	void addShutdownFunction(String filename, PyObject *function);

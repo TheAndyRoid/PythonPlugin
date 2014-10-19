@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 PythonPlugin *PythonPlugin::instance = NULL;
 
 
-
+/*Called when the python source is expeteced to show a config gui*/
 bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 {
 
@@ -55,8 +55,6 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	}
 
 	
-
-	/*Called when the element is created at stream start.*/
 
 
 
@@ -83,29 +81,12 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	}
 
 
-	/*
-	DWORD dwWaitResult = WaitForSingleObject(
-		pyPlug->ghMutex,    // handle to mutex
-		INFINITE);  // no time-out interval
-	*/
-
-
-
+	bool reload = dataElement->GetInt(TEXT("Debug"));
 	
-
-	//Python
-	
-
-
-	//get correct files from config here
-
-	
-	//pName = PyString_FromString("baseGUI");
 	pyHasError();
 
 	pName = CTSTRtoPyUnicode(moduleName);
 	PyObject *dict = PyImport_GetModuleDict();
-	bool reload = false;
 	if (PyDict_Contains(dict, pName) && reload){ //make a debug option to reload source	
 		pModule = PyDict_GetItem(dict, pName);
 		pModule = PyImport_ReloadModule(pModule);
@@ -126,7 +107,6 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 	if (pModule != NULL) {
 		pFunc = PyObject_GetAttr(pModule, CTSTRtoPyUnicode(className));
-		//pFunc = PyObject_GetAttrString(pModule, (char*) "guimain");
 
 		if (pFunc && PyCallable_Check(pFunc)) {
 			PyObject *argList = Py_BuildValue("");
@@ -157,8 +137,6 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	}
 	else {
 		PyErr_Print();
-
-
 	}
 
 	Py_XDECREF(pModule);
@@ -188,6 +166,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	}
 }
 
+/*Called when the element is created at stream start.*/
 ImageSource* STDCALL CreatePythonSource(XElement *data)
 {
 
@@ -200,9 +179,6 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	String sourceName = thisSource->GetName();
 	String sceneName = thisScene->GetName();
 
-	/*Called when the element is created at stream start.*/
-
-	//This is called when the source goes live
 
 
 	//Get the plugin instance
@@ -222,8 +198,6 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();	
-
-
 	
 
 
@@ -236,10 +210,7 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	}else{		
 		moduleName = addToPythonPath(file);
 	}
-
-
 		
-	
 	
 
 	
@@ -249,16 +220,16 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 	pName = CTSTRtoPyUnicode(moduleName);
 
-
+	bool reload = data->GetInt(TEXT("Debug"));
 
 	PyObject *dict = PyImport_GetModuleDict();
-	if (!PyDict_Contains(dict, pName)){
-		pModule = PyImport_Import(pName);
+	if (PyDict_Contains(dict, pName) && reload){
+		pModule = PyDict_GetItem(dict, pName);
+		pModule = PyImport_ReloadModule(pModule);
 		pyHasError();
 	}
 	else{
-		pModule = PyDict_GetItem(dict, pName);
-		pModule = PyImport_ReloadModule(pModule);
+		pModule = PyImport_Import(pName);
 		pyHasError();
 	}
 
@@ -308,9 +279,7 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 
 	PyGILState_Release(gstate);
 
-	//ReleaseMutex(pyPlug->ghMutex);
-	if (pyObjectCreated){
-		
+	if (pyObjectCreated){		
 		return pyPlug->pImageSource;
 	}
 	else{
@@ -348,7 +317,7 @@ PythonPlugin::PythonPlugin()
 	
 
 	
-	/*Must set arguments for gui to work*/
+	/*Must set arguments for guis to work*/
 	char *argv[] = { "OBS", NULL };
 	int argc = sizeof(argv) / sizeof(char*) - 1;
 	PySys_SetArgv(argc, argv);
@@ -381,43 +350,16 @@ PythonPlugin::PythonPlugin()
 	PythonRunString(String("sys.stderr = open('") + path + String("/stdErr.txt','w',0)"));
 
 
-
-	
-	
-
-	/*PyRun_SimpleString("import OBS\n",
-		"import sys\n"
-		"from PySide import QtGui, QtCore\n"
-		"import ctypes\n"
-		"app = QtGui.QApplication('')\n"
-	);*/
-	
-	
+	//Release the GIL	
 	PyThreadState *pts = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(pts);
 }
 
 
-
-
-void PythonPlugin::finPython(){
-	
-	
-	if (Py_IsInitialized()){
-		Py_Finalize();
-	}
-
-
-
-}
   
 PythonPlugin::~PythonPlugin()
 {
-	/*
-	DWORD dwWaitResult = WaitForSingleObject(
-		ghMutex,    // handle to mutex
-		INFINITE);  // no time-out interval
-	*/
+
 
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
@@ -425,23 +367,15 @@ PythonPlugin::~PythonPlugin()
 	Log(TEXT("Python plugin Destroyed"));
 	if (isDynamicLocale) {
 		int localizationStringCount = sizeof(localizationStrings) / sizeof(CTSTR);
-		Log(TEXT("Video Source Plugin instance deleted; removing dynamically loaded localization strings"));
+		Log(TEXT("Plugin instance deleted; removing dynamically loaded localization strings"));
 		for (int i = 0; i < localizationStringCount; i += 2) {
 			locale->RemoveLookupString(localizationStrings[i]);
 		}
 	}
 
-
-	
-
 	//Run Alocated cleanup functions
 	//One cleanup per uinque file
 	clearShutdownFunctions();
-
-
-
-
-
 	
 	
 	if (Py_IsInitialized()){

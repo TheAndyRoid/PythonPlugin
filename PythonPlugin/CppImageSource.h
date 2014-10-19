@@ -71,8 +71,6 @@ public:
 	
 	void CallPythonFunction(char* funcName);
 
-	void getImageFromPython();
-
 	void* getBackBuffer();
 	void* getFrontBuffer();
 	void flipPixelBuffers();

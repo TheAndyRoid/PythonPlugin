@@ -168,7 +168,8 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(Platform)\$(Configuration)\$(ProjectName).dll" "C:\Program Files (x86)\OBS\plugins\$(ProjectName).dll"</Command>
+      <Command>copy /Y "$(Platform)\$(Configuration)\$(ProjectName).dll" "C:\Program Files (x86)\OBS\plugins\$(ProjectName).dll"
+"C:\Program Files (x86)\NSIS\makensis.exe" C:\Projects\PythonPlugin\installer\installer.nsi</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

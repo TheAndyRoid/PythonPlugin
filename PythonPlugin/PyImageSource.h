@@ -124,9 +124,6 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 		}
 	}
 	
-	//set the object here
-	//Py_INCREF(self);
-
 
 	return (PyObject*)self;
 }
@@ -180,8 +177,6 @@ static PyObject * pyImageSource_GetBackBuffer(pyImageSource *self){
 		else{
 			return self->bufferB;
 		}
-
-
 	}
 	else {
 		return self->bufferA;	
