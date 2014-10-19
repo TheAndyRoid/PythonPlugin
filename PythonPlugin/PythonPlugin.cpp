@@ -71,7 +71,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 	PyObject *pName, *pModule, *pFunc;
 
 	if (isMissingDataElement){
-		moduleName = TEXT("selectionGUI");
+		moduleName = TEXT("DefaultGUI");
 		className = TEXT("gui");
 
 	}
@@ -176,6 +176,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 
 		if (!dataElement->GetString(TEXT("PythonGUIFile")) || !dataElement->GetString(TEXT("PythonGUIClass"))
 			|| !dataElement->GetString(TEXT("PythonMainFile")) || !dataElement->GetString(TEXT("PythonMainClass"))){
+			//User canceled
 			return false;
 		}
 		else{
@@ -362,7 +363,9 @@ PythonPlugin::PythonPlugin()
 	path = path + String("/Python");
 
 
-
+	String appPath(OBSGetAppPath());
+	appPath.FindReplace(TEXT("\\"), TEXT("/"));
+	appPath = appPath + String("/plugins/PythonPlugin");
 
 
 
@@ -371,6 +374,7 @@ PythonPlugin::PythonPlugin()
 
 	PythonRunString(String("os.makedirs('") + path + String("')"));
 	PythonRunString(String("sys.path.append('") + path + String("')"));
+	PythonRunString(String("sys.path.append('") + appPath + String("')"));
 
 
 	PythonRunString(String("sys.stdout = open('") + path + String("/stdOut.txt','w',0)"));
