@@ -189,7 +189,8 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	}	
 
 	//Create Image source
-	pyPlug->pImageSource = new CppImageSource(data);
+	CppImageSource *pImageSource = new CppImageSource(data);
+	pyPlug->tmpImgSrc = pImageSource;
 	
 
 	String file;
@@ -254,8 +255,9 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 			else if (!isPyObjectBaseClass((PyObject*)pyImgSrc, &String(TEXT("ImageSource")))){
 				Log(TEXT("PYTHON ERROR Class: %ws , is not derived from OBS.ImageSource"),className);
 			}else{
-				pyImgSrc->cppImageSource = pyPlug->pImageSource;
-				pyPlug->pImageSource->pyImgSrc = (PyObject*)pyImgSrc;
+				pImageSource->pyImgSrc = (PyObject*)pyImgSrc;
+				//Clear pyPlug
+				pyPlug->tmpImgSrc = NULL;
 				pyObjectCreated = true;
 			}
 			Py_XDECREF(argList);
@@ -280,7 +282,7 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	PyGILState_Release(gstate);
 
 	if (pyObjectCreated){		
-		return pyPlug->pImageSource;
+		return pImageSource;
 	}
 	else{
 		return NULL;

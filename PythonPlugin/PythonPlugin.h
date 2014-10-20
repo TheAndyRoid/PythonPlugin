@@ -68,7 +68,7 @@ public:
 	shutdown_map shutdownFunc;
 	
 	 
-	CppImageSource *pImageSource;
+	CppImageSource *tmpImgSrc;
 private:
 	bool isDynamicLocale;
 

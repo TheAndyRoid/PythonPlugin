@@ -186,26 +186,7 @@ py_OBSStartStopRecording(PyObject *self, PyObject *args){
 }
 
 
-static PyObject *
-py_GetImageSource(PyObject *self, PyObject *args){
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return Py_BuildValue("");
-	}
-	//Get the image source and set it 
-	if (pyPlug->pImageSource == NULL){
-		Log(TEXT("Python pImageSource NULL"));
-		return Py_BuildValue("");
-	}
-	PyObject *imgsrc = pyPlug->pImageSource->getImageSource();
-	if (imgsrc == NULL){
-		Log(TEXT("Python getImageSource NULL"));
-		return Py_BuildValue("");
-	}
 
-	return imgsrc;
-}
 
 static PyObject *
 py_OBSLog(PyObject *self, PyObject *args){
@@ -539,7 +520,6 @@ static PyMethodDef pyOBS_methods[] = {
 		{ "StartStopStream", py_OBSStartStopStream, METH_VARARGS, "Starts or Stops Stream" },
 		{ "StartStopPreview", py_OBSStartStopPreview, METH_VARARGS, "Starts or Stops Preview" },
 		{ "StartStopRecording", py_OBSStartStopRecording, METH_VARARGS, "Starts or Stops Recording" },
-		{ "GetImageSource", py_GetImageSource, METH_VARARGS, "Gets the imagesource python object" },
 		{ "GetSceneListElement", py_OBSGetSceneListElement, METH_VARARGS, "GetSceneListElement" },
 		{ "GetGlobalSourceListElement", py_OBSGetGlobalSourceListElement, METH_VARARGS, "GetGlobalSourceListElement" },
 		{ "GetSceneElement", py_OBSGetSceneElement, METH_VARARGS, "GetSceneElement" },

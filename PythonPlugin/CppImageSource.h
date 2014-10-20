@@ -46,8 +46,7 @@ private:
 	
 	Vect2 imageSize;
 	Texture *texture;
-	String scene;
-	String source;
+
 
 	Texture* MakeTexture();
 	GSColorFormat texFormat = GS_BGRA;
@@ -59,12 +58,12 @@ private:
 	
 
 public:
-	Vect2 renderSize;
-	hotkey_map hotkeyToCallable;
+	
 	CppImageSource(XElement *data);
 	~CppImageSource();
+	Vect2 renderSize;
+	hotkey_map hotkeyToCallable;
 	PyObject *pyImgSrc = NULL;
-	PyObject *pyRender = NULL;
 	Texture *GetTexture() { return texture; }
 	void ClearTexture(void* pxdata);
 	void ColourArea(void *pxdata);
@@ -91,8 +90,8 @@ public:
 	bool setupFormats(char *format);
 	
 
-	String getSourceName(){ return source; };
-	String getSceneName(){ return scene; };
+	String getSourceName();
+	String getSceneName();
 
 
 public:

@@ -35,11 +35,6 @@ typedef struct{
 	/* Specific data for this python object */
 	//Pointer to the cpp imagesource
 	CppImageSource* cppImageSource;
-	//Python callable objects
-	PyObject *render; //Render Callback
-	PyObject *tick; // Tick Callback
-	PyObject *stop; //Render Callback
-	PyObject *updateSettings; // Settings Callback
 	PyObject *bufferA;  //Byte array
 	PyObject *bufferB;  //Byte array
 	PyObject *formatString; // string
@@ -54,10 +49,7 @@ static void
 pyImageSource_dealloc(pyImageSource* self)
 {
 	
-	Py_XDECREF(self->tick);
-	Py_XDECREF(self->stop);
-	Py_XDECREF(self->render);
-	Py_XDECREF(self->updateSettings);
+
 	Py_XDECREF(self->bufferA);
 	Py_XDECREF(self->bufferB);
 	Py_XDECREF(self->formatString);
@@ -79,9 +71,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 		return NULL;
 	}
 
-	if (pyPlug->pImageSource == NULL){
-		return NULL;
-	}
+
 
 
 
@@ -91,37 +81,15 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 		
 		
 		//Get the image source and set it 
-		if (pyPlug->pImageSource == NULL){
+		if (pyPlug->tmpImgSrc == NULL){
 			Py_DECREF(self);
 			return NULL;
 		}
-		self->cppImageSource = pyPlug->pImageSource;
-		
-		
-		
+		//Get the CppImage source from pyPlug
+		self->cppImageSource = pyPlug->tmpImgSrc;
 		
 
-		//Create non-callable objects as default
-		self->render = PyFloat_FromDouble(0.0);
-		if (self->render == NULL){
-			Py_DECREF(self);
-			return NULL;
-		}
-		self->stop = PyFloat_FromDouble(0.0);
-		if (self->stop == NULL){
-			Py_DECREF(self);
-			return NULL;
-		}
-		self->tick = PyFloat_FromDouble(0.0);
-		if (self->tick == NULL){
-			Py_DECREF(self);
-			return NULL;
-		}
-		self->updateSettings = PyFloat_FromDouble(0.0);
-		if (self->updateSettings == NULL){
-			Py_DECREF(self);
-			return NULL;
-		}
+		
 	}
 	
 

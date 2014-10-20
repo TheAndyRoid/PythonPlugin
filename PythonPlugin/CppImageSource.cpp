@@ -30,8 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 CppImageSource::CppImageSource(XElement *data)
 {
 
-	this->source = data->GetParent()->GetName();
-	this->scene = data->GetParent()->GetParent()->GetParent()->GetName();
+
 	Log(TEXT("Python Source Constructor"));
 
 	PythonPlugin *pyPlug = PythonPlugin::instance;
@@ -39,13 +38,10 @@ CppImageSource::CppImageSource(XElement *data)
 		Log(TEXT("Python instance Does not exist"));
 	}
 
-	//Set a basic image size
-	imageSize = Vect2(1920, 1080);
-
-	//MakeTexture();
+	//Set a safe image size
+	imageSize = Vect2(0, 0);
 
 
-	pyRender = NULL;
 	pyImgSrc = NULL;
 	
 	
@@ -74,13 +70,6 @@ CppImageSource::~CppImageSource(){
 	hotkeyToCallable.clear();
 
 
-	Py_XDECREF(pyRender);
-
-	
-
-	
-	
-	
 		
 	if (pyImgSrc != NULL){
 		CallPythonFunction("Destructor");
@@ -91,7 +80,6 @@ CppImageSource::~CppImageSource(){
 	
 	
 	
-	pyRender = NULL;
 	pyImgSrc = NULL;
 	Log(TEXT("Python Source Destructor"));
 	
@@ -169,18 +157,12 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
 
-		pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "Render");
-		if (pyRender != NULL && PyCallable_Check(pyRender)){
-			
-		}
-		else{
-			pyRender = NULL;
-			Log(TEXT("rendercallback not callable"));
-			PyGILState_Release(gstate);
-
-			return;
-		}
-	
+	PyObject *pyRender = PyObject_GetAttrString(pyImgSrc, (char*) "Render");
+	if (pyRender == NULL && !PyCallable_Check(pyRender)){
+		Log(TEXT("Render not callable"));
+		PyGILState_Release(gstate);
+		return;
+	}
 
 	PyObject * OBSModule = PyImport_ImportModule("OBS");
 	if (OBSModule == NULL){
@@ -230,6 +212,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	Py_XDECREF(vect2);
 	Py_XDECREF(argList);
 	Py_XDECREF(result);
+	Py_XDECREF(pyRender);
 	
 
 	PyGILState_Release(gstate);
@@ -314,7 +297,6 @@ void CppImageSource::flipPixelBuffers(){
  Texture* CppImageSource::MakeTexture(){
 
 	 texture = CreateTexture(imageSize.x, imageSize.y, texFormat, nullptr, FALSE, FALSE);
-	 pixelFront = pixelA;
 	 return texture;
  }
  
@@ -524,4 +506,24 @@ void CppImageSource::flipPixelBuffers(){
 	 
 
 	 
+ }
+
+
+ String CppImageSource::getSourceName(){
+
+	 Scene *scene = OBSGetScene(); //Gets current scene
+	 String name("");
+	 for (int i = 0; i < scene->NumSceneItems(); i++){
+		 SceneItem *sceneItem = scene->GetSceneItem(i);
+		 if (sceneItem->GetSource() == this){
+			 name = String(sceneItem->GetName());
+			 break;
+		 }
+	 }
+
+	 return name;
+ }
+
+ String CppImageSource::getSceneName(){ 
+	return	 String(OBSGetSceneName()); 
  }
