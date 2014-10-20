@@ -46,8 +46,7 @@ private:
 	
 	Vect2 imageSize;
 	Texture *texture;
-
-
+	XElement *data;
 	Texture* MakeTexture();
 	GSColorFormat texFormat = GS_BGRA;
 	GSImageFormat imgFormat = GS_IMAGEFORMAT_BGRA;
@@ -108,6 +107,7 @@ public:
 	int getWidth();
 	int getHeight();
 	PyObject *getImageSource(){ return pyImgSrc; }
+
 
 
 	/*Config*/

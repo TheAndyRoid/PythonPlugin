@@ -69,6 +69,8 @@ public:
 	
 	 
 	CppImageSource *tmpImgSrc;
+
+	
 private:
 	bool isDynamicLocale;
 

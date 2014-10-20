@@ -53,12 +53,9 @@ class ColourSquare(OBS.ImageSource):
         OBS.Log("endScene")
 
     def Render(self,pos,size):
-        crop = self.GetCropping()
-        self.SetCropping(crop.x,crop.y,crop.z,crop.w)
         self.DrawSprite(0xffffffff,
                         pos.x,
-                        pos.y)
-        self.SetCropping(0,0,0,0)
+                        pos.y)        
 
     def Destructor(self):
        pass

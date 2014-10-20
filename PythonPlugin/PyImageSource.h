@@ -230,11 +230,15 @@ static PyObject * pyImageSource_GetCropping(pyImageSource *self, PyObject *args)
 	CppImageSource * imgSrc = self->cppImageSource;
 	if (imgSrc == NULL){
 		PyErr_SetString(PyExc_TypeError, "Missing CppInstance");
-		return Py_BuildValue("");
+		return NULL;
 	}
 
 	Scene *scene = OBSGetScene();
 	SceneItem *sceneItem = scene->GetSceneItem(imgSrc->getSourceName());
+	if (!sceneItem){
+		PyErr_SetString(PyExc_Warning, "Can't get cropping of global sources");
+		return NULL;
+	}
 	Vect4 crop = sceneItem->GetCrop();
 
 	PyObject * OBSModule = PyImport_ImportModule("OBS");

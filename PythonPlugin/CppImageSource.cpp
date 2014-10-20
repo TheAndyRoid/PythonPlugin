@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 CppImageSource::CppImageSource(XElement *data)
 {
 
-
+	this->data = data;
 	Log(TEXT("Python Source Constructor"));
 
 	PythonPlugin *pyPlug = PythonPlugin::instance;
@@ -38,6 +38,7 @@ CppImageSource::CppImageSource(XElement *data)
 		Log(TEXT("Python instance Does not exist"));
 	}
 
+	
 	//Set a safe image size
 	imageSize = Vect2(0, 0);
 
@@ -497,15 +498,25 @@ void CppImageSource::flipPixelBuffers(){
 
 
  String CppImageSource::getSourceName(){
+	 String global = data->GetParent()->GetParent()->GetName();
+	 bool bglobal = false;
+	 if (global.Compare(String("global sources"))){
+		 bglobal = true;
+	 }
 
 	 Scene *scene = OBSGetScene(); //Gets current scene
-	 String name("");
-	 for (int i = 0; i < scene->NumSceneItems(); i++){
-		 SceneItem *sceneItem = scene->GetSceneItem(i);
-		 if (sceneItem->GetSource() == this){
-			 name = String(sceneItem->GetName());
-			 break;
+	 String name = "";
+	 if (!bglobal){
+		 for (int i = 0; i < scene->NumSceneItems(); i++){
+			 SceneItem *sceneItem = scene->GetSceneItem(i);
+			 if (sceneItem->GetSource() == this){
+				 name = String(sceneItem->GetName());
+				 break;
+			 }
 		 }
+	 }
+	 else{
+		//Global sources are stupid
 	 }
 
 	 return name;
