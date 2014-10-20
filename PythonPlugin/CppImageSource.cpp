@@ -50,10 +50,7 @@ CppImageSource::CppImageSource(XElement *data)
 
 CppImageSource::~CppImageSource(){	
 
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-	}
+
 
 	
 	PyGILState_STATE gstate;
@@ -97,10 +94,7 @@ CppImageSource::~CppImageSource(){
 void CppImageSource::Tick(float seconds){
 
 	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return;
-	}
+
 
 	PyGILState_STATE gstate;
 	gstate = PyGILState_Ensure();
@@ -141,11 +135,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	renderSize.x = size.x;
 	renderSize.y = size.y;
 
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return;
-	}
+
 
 
 	if (!texture) {
@@ -475,10 +465,7 @@ void CppImageSource::flipPixelBuffers(){
  void CppImageSource::CallPythonFunction(char* funcName){
 
 	 PythonPlugin *pyPlug = PythonPlugin::instance;
-	 if (pyPlug == NULL){
-		 Log(TEXT("Python instance Does not exist"));
-		 return;
-	 }	 
+	
 
 	 PyObject *pyFunc = PyObject_GetAttrString(pyImgSrc, funcName);
 	 if (pyFunc != NULL && PyCallable_Check(pyFunc)){

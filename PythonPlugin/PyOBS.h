@@ -475,9 +475,7 @@ py_OBSAddShutdownFunction(PyObject *self, PyObject *args){
 		return NULL;
 	}
 	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-	}
+	
 	
 
 	wchar_t *wstr = pyObjectToWSTR(pyStr);

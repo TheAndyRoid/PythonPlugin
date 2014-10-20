@@ -66,11 +66,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 	
 	//Get the plugin instance
 	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return NULL;
-	}
-
+	
 
 
 
@@ -479,11 +475,7 @@ pyImageSource_CreateHotKey(pyImageSource *self, PyObject *args){
 	pyRet = PyInt_FromLong(cRet);
 	Py_INCREF(callback);
 
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return NULL;
-	}
+	
 	self->cppImageSource->hotkeyToCallable[cRet] = callback;
 
 	return Py_BuildValue("O", pyRet);
@@ -506,13 +498,6 @@ pyImageSource_DeleteHotKey(pyImageSource *self, PyObject *args){
 	}
 
 	OBSDeleteHotkey(key);
-
-	PythonPlugin *pyPlug = PythonPlugin::instance;
-	if (pyPlug == NULL){
-		Log(TEXT("Python instance Does not exist"));
-		return NULL;
-	}
-
 
 	if (self->cppImageSource->hotkeyToCallable.find(key) != self->cppImageSource->hotkeyToCallable.end()){
 		PyObject *callback = self->cppImageSource->hotkeyToCallable[key];
