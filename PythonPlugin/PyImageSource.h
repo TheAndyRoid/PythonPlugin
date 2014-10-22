@@ -537,7 +537,7 @@ static PyMethodDef pyImageSource_methods[] = {
 		{ "GetBackBuffer", (PyCFunction)pyImageSource_GetBackBuffer, METH_VARARGS, "Gets byte buffer" },
 		{ "CopyToBackBuffer", (PyCFunction)pyImageSource_CopyToBackBuffer, METH_VARARGS, "Copies data from addr to backbuffer" },
 		{ "CreateHotKey", (PyCFunction)pyImageSource_CreateHotKey, METH_VARARGS, "Creates a hotkey" },
-		{ "DeleteHotKey", (PyCFunction)pyImageSource_DeleteHotKey, METH_VARARGS, "Creates a hotkey" },
+		{ "DeleteHotKey", (PyCFunction)pyImageSource_DeleteHotKey, METH_VARARGS, "Deletes a hotkey" },
 	{ NULL }  /* Sentinel */
 };
 

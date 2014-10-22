@@ -36,7 +36,7 @@ PythonPlugin *PythonPlugin::instance = NULL;
 
 
 /*Called when the python source is expeteced to show a config gui*/
-bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
+bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 {
 
 	String file;
@@ -158,7 +158,7 @@ bool STDCALL ConfigureVideoSource(XElement *element, bool bCreating)
 			return false;
 		}
 		else{
-			return ConfigureVideoSource(element, false);
+			return ConfigurePythonSource(element, false);
 		}
 	}
 	else{
@@ -300,7 +300,7 @@ PythonPlugin::PythonPlugin()
 	if (!locale->HasLookup(KEY("PluginName"))) {
 		isDynamicLocale = true;
 		int localizationStringCount = sizeof(localizationStrings) / sizeof(CTSTR);
-		Log(TEXT("Video Source Plugin strings not found, dynamically loading %d strings"), sizeof(localizationStrings) / sizeof(CTSTR));
+		Log(TEXT("Python Plugin strings not found, dynamically loading %d strings"), sizeof(localizationStrings) / sizeof(CTSTR));
 		for (int i = 0; i < localizationStringCount; i += 2) {
 			locale->AddLookupString(localizationStrings[i], localizationStrings[i + 1]);
 		}
@@ -311,7 +311,7 @@ PythonPlugin::PythonPlugin()
 	
 
 	//Register callbacks with obs
-	OBSRegisterImageSourceClass(VIDEO_SOURCE_CLASS, STR("ClassName"), (OBSCREATEPROC)CreatePythonSource, (OBSCONFIGPROC)ConfigureVideoSource);
+	OBSRegisterImageSourceClass(VIDEO_SOURCE_CLASS, STR("ClassName"), (OBSCREATEPROC)CreatePythonSource, (OBSCONFIGPROC)ConfigurePythonSource);
 
 
 	Py_Initialize();
