@@ -69,78 +69,19 @@ static bool isNULL(void * obj){
 
 }
 
-static char* getPythonTraceback()
-{
-	// Python equivilant:
-	// import traceback, sys
-	// return "".join(traceback.format_exception(sys.exc_type,
-	//    sys.exc_value, sys.exc_traceback))
-
-	PyObject *type, *value, *traceback;
-	PyObject *tracebackModule;
-	char *chrRetval;
-
-	PyErr_Fetch(&type, &value, &traceback);
-
-	tracebackModule = PyImport_ImportModule("traceback");
-	if (tracebackModule != NULL)
-	{
-		PyObject *tbList, *emptyString, *strRetval;
-
-		tbList = PyObject_CallMethod(
-			tracebackModule,
-			"format_exception",
-			"OOO",
-			type,
-			value == NULL ? Py_None : value,
-			traceback == NULL ? Py_None : traceback);
-
-		emptyString = PyString_FromString("");
-		strRetval = PyObject_CallMethod(emptyString, "join",
-			"O", tbList);
-
-		chrRetval = strdup(PyString_AsString(strRetval));
-
-		Py_DECREF(tbList);
-		Py_DECREF(emptyString);
-		Py_DECREF(strRetval);
-		Py_DECREF(tracebackModule);
-	}
-	else
-	{
-		chrRetval = strdup("Unable to import traceback module.");
-	}
-
-	Py_DECREF(type);
-	Py_XDECREF(value);
-	Py_XDECREF(traceback);
-
-	return chrRetval;
-}
-
 
 static bool pyHasError(){
 	bool ret = false;
 
 	if (PyErr_Occurred()){
 
-		char * cstr = getPythonTraceback();
-		int len = strlen(cstr) + 1;
-		wchar_t *wstr = new  wchar_t[len];
-		mbstowcs(&*wstr, cstr, len);
+		String path = OBSGetPluginDataPath();
+		path.FindReplace(TEXT("\\"), TEXT("/"));
+		path = path + String("/Python/stdErr.txt");
 
-		Log(TEXT("PYTHON ERROR:"));
-		String str(wstr);
-		for (int i = 0; i < str.NumTokens('\n'); i++){
-			LogRaw(str.GetToken(i, '\n'));
-		}
-		delete[] wstr;
-		/*
+		//Don't want to fill obs logs with lots of errors
+		Log(TEXT("PYTHON ERROR: Check log %ls"),path);
 		PyErr_Print();
-		String path = OBSGetAppPath();
-		path.AppendString(String ("\\plugins\\Python\\pyErr.txt"));
-		OSMessageBox(TEXT("PYTHON ERROR:\n CHECK DEFAULT LOG FILE: %ls"), path);
-		*/
 		ret = true;
 	}
 
@@ -164,7 +105,7 @@ static String addToPythonPath(String cstr){
 		dir.AppendString(cstr.GetToken(i, '/'));
 	}
 	PyList_Append(path, CTSTRtoPyUnicode(dir));
-	Log(TEXT("%ws"), dir);
+	//Log(TEXT("%ws"), dir);
 
 	String moduleName = cstr.GetToken(cstr.NumTokens('/')-1, '/');
 	moduleName = moduleName.GetToken(moduleName.NumTokens('.') - 2, '.');

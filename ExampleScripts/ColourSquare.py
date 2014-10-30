@@ -30,6 +30,12 @@ class ColourSquare(OBS.ImageSource):
         self.pixelbuffer = bytearray(self.width*self.height*self.bpp)
 
         self.SetColour(0xff,0xff,255,255)
+        self.CreateHotKey(0x52,self.hkey)
+        self.CreateHotKey(0x47,self.hkey)
+        self.CreateHotKey(0x42,self.hkey)
+        self.CreateHotKey(0x57,self.hkey)
+        self.CreateHotKey(0x26,self.hkey)
+        self.CreateHotKey(0x28,self.hkey)
             
     def SetColour(self,r,g,b,a):
         for i in range(0,self.width*self.height*self.bpp,self.bpp):
@@ -86,12 +92,7 @@ class ColourSquare(OBS.ImageSource):
     
     def BeginScene(self):
         self.SetBuffers(self.pixelbuffer,"BGRA",self.width,self.height)
-        self.CreateHotKey(0x52,self.hkey)
-        self.CreateHotKey(0x47,self.hkey)
-        self.CreateHotKey(0x42,self.hkey)
-        self.CreateHotKey(0x57,self.hkey)
-        self.CreateHotKey(0x26,self.hkey)
-        self.CreateHotKey(0x28,self.hkey)
+        
 
 
 
