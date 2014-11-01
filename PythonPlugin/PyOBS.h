@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 #include "PyVect2.h"
 #include "PyImageSource.h"
 #include "PyXElement.h"
+#include "PyScene.h"
 
 
 
@@ -40,6 +41,15 @@ static PyObject *
 py_OBSGetSceneName(PyObject *self, PyObject *args){
 	CTSTR scenename = OBSGetSceneName();
 	return PyUnicode_FromWideChar(scenename, wcslen(scenename));
+}
+
+
+static PyObject *
+py_OBSGetScene(PyObject *self, PyObject *args){
+	Scene* scene = OBSGetScene();
+	PyObject *obj = PyObject_CallObject((PyObject *)&pySceneType, NULL);
+	((PyScene*)obj)->scene = scene;
+	return obj;	
 }
 
 static PyObject *
@@ -499,6 +509,7 @@ py_OBSAddShutdownFunction(PyObject *self, PyObject *args){
 static PyMethodDef pyOBS_methods[] = {
 		{ "GetAPIVersion", py_OBSGetAPIVersion, METH_VARARGS, "Gets OBS API version" },
 		{ "GetSceneName", py_OBSGetSceneName, METH_VARARGS, "Gets OBS scene name" },
+		{ "GetScene", py_OBSGetScene, METH_VARARGS, "Gets OBS scene name" },
 		{ "GetBaseSize", py_OBSGetBaseSize, METH_VARARGS, "Get the base scene size " },
 		{ "GetRenderFrameSize", py_OBSGetRenderFrameSize, METH_VARARGS, "Get the render frame size " },
 		{ "GetOutputSize", py_OBSGetOutputSize, METH_VARARGS, "Get the stream output size " },
@@ -578,6 +589,17 @@ initOBS(void)
 	Py_INCREF(&PyXElement_Object);
 	PyModule_AddObject(m, "XElement", (PyObject *)&PyXElement_Object);
 
+
+	if (PyType_Ready(&pySceneType) < 0)
+		return;
+	Py_INCREF(&pySceneType);
+	PyModule_AddObject(m, "Scene", (PyObject *)&pySceneType);
+
+
+	if (PyType_Ready(&pySceneItemType) < 0)
+		return;
+	Py_INCREF(&pySceneItemType);
+	PyModule_AddObject(m, "SceneItem", (PyObject *)&pySceneItemType);
 
 }
 

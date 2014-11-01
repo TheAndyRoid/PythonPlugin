@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 /*Object Data*/
 typedef struct{
 	PyObject_HEAD
-		Scene *scene;
+	Scene *scene;
 }PyScene;
 
 
@@ -82,7 +82,7 @@ pyScene_init(PyScene *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject* pyScene_InsertImageSource(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	long argLength = PyTuple_Size(args);
@@ -109,7 +109,7 @@ static PyObject* pyScene_InsertImageSource(PyScene *self, PyObject *args){
 	return pyRet;
 }
 static PyObject* pyScene_AddImageSource(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	long argLength = PyTuple_Size(args);
@@ -136,7 +136,7 @@ static PyObject* pyScene_AddImageSource(PyScene *self, PyObject *args){
 	return pyRet;
 }
 static PyObject* pyScene_RemoveImageSource(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	if (PyTuple_Size(args) != 1){
@@ -162,7 +162,7 @@ static PyObject* pyScene_RemoveImageSource(PyScene *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_Tick(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	if (PyTuple_Size(args) != 1){
@@ -180,42 +180,42 @@ static PyObject* pyScene_Tick(PyScene *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_Render(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	self->scene->Render();
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_Preprocess(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	self->scene->Preprocess();
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_UpdateSettings(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	self->scene->UpdateSettings();
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_BeginScene(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	self->scene->BeginScene();
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_EndScene(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	self->scene->EndScene();
 	return Py_BuildValue("");
 }
 static PyObject* pyScene_HasMissingSources(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	if (self->scene->HasMissingSources()){
@@ -226,15 +226,16 @@ static PyObject* pyScene_HasMissingSources(PyScene *self, PyObject *args){
 	}
 }
 static PyObject* pyScene_NumSceneItems(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 	return PyInt_FromLong(self->scene->NumSceneItems());
 }
 static PyObject* pyScene_GetSceneItemByName(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
+
 
 	if (PyTuple_Size(args) != 1){
 		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
@@ -255,6 +256,9 @@ static PyObject* pyScene_GetSceneItemByName(PyScene *self, PyObject *args){
 	SceneItem *ret = self->scene->GetSceneItem(wname);
 	delete[] wname;
 
+	if (!ret){
+		Py_RETURN_NONE;
+	}
 	PyObject *pyRet = PyObject_CallObject((PyObject*)&pySceneItemType, NULL);
 	((PySceneItem*)pyRet)->sceneItem = ret;
 
@@ -262,7 +266,7 @@ static PyObject* pyScene_GetSceneItemByName(PyScene *self, PyObject *args){
 	return pyRet;	
 }
 static PyObject* pyScene_GetSceneItemByID(PyScene *self, PyObject *args){
-	if (sceneExists(self)){
+	if (!sceneExists(self)){
 		return NULL;
 	}
 
@@ -277,8 +281,15 @@ static PyObject* pyScene_GetSceneItemByID(PyScene *self, PyObject *args){
 		return NULL;
 	}
 	
+	//check ID bounds
+	if (!(id >= 0 && id < self->scene->NumSceneItems())){
+		Py_RETURN_NONE;
+	}
 	SceneItem *ret = self->scene->GetSceneItem(id);
 	
+	if (!ret){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pyRet = PyObject_CallObject((PyObject*)&pySceneItemType, NULL);
 	((PySceneItem*)pyRet)->sceneItem = ret;

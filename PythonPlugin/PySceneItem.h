@@ -82,30 +82,30 @@ pySceneItem_init(PySceneItem *self, PyObject *args, PyObject *kwds)
 
 
 static PyObject* pySceneItem_GetName(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
 	return  CTSTRtoPyUnicode(self->sceneItem->GetName());		
 }
 static PyObject* pySceneItem_GetSource(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
 	CppImageSource *cImgSrc = dynamic_cast<CppImageSource*>(self->sceneItem->GetSource());
 	if (cImgSrc != NULL){
-	//This image source is controlled by python 
-	
+		//This image source is controlled by python 
+		Py_INCREF(cImgSrc->pyImgSrc);
+		return cImgSrc->pyImgSrc;
 	}
 	else{
-	//This is a Imagesource of another type basic functionality only
-	
-	}
-	return  CTSTRtoPyUnicode(self->sceneItem->GetName());
+		//This is a Imagesource of another we can't interact with it in python. 
+		Py_RETURN_NONE;
+	}	
 }
 static PyObject* pySceneItem_GetElement(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	PyObject *pyElement = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
@@ -113,7 +113,7 @@ static PyObject* pySceneItem_GetElement(PySceneItem *self, PyObject *args){
 	return pyElement;
 }
 static PyObject* pySceneItem_GetPos(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	Vect2	pos = self->sceneItem->GetPos();
@@ -125,7 +125,7 @@ static PyObject* pySceneItem_GetPos(PySceneItem *self, PyObject *args){
 	return  pyPos;
 }
 static PyObject* pySceneItem_GetSize(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	Vect2	pos = self->sceneItem->GetSize();
@@ -137,7 +137,7 @@ static PyObject* pySceneItem_GetSize(PySceneItem *self, PyObject *args){
 	return  pyPos;
 }
 static PyObject* pySceneItem_GetScale(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	Vect2	pos = self->sceneItem->GetScale();
@@ -149,7 +149,7 @@ static PyObject* pySceneItem_GetScale(PySceneItem *self, PyObject *args){
 	return  pyPos;
 }
 static PyObject* pySceneItem_IsCropped(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	if (self->sceneItem->IsCropped()){
@@ -160,7 +160,7 @@ static PyObject* pySceneItem_IsCropped(PySceneItem *self, PyObject *args){
 	}
 }
 static PyObject* pySceneItem_Select(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	if (PyTuple_Size(args) != 1){
@@ -184,7 +184,7 @@ static PyObject* pySceneItem_Select(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_IsSelected(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	if (self->sceneItem->IsSelected()){
@@ -195,7 +195,7 @@ static PyObject* pySceneItem_IsSelected(PySceneItem *self, PyObject *args){
 	}
 }
 static PyObject* pySceneItem_GetID(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
@@ -203,7 +203,7 @@ static PyObject* pySceneItem_GetID(PySceneItem *self, PyObject *args){
 	return PyInt_FromLong(id);
 }
 static PyObject* pySceneItem_SetName(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
@@ -229,7 +229,7 @@ static PyObject* pySceneItem_SetName(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_SetRender(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	if (PyTuple_Size(args) != 1){
@@ -253,7 +253,7 @@ static PyObject* pySceneItem_SetRender(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_GetCrop(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	Vect4	crop = self->sceneItem->GetCrop();
@@ -265,7 +265,7 @@ static PyObject* pySceneItem_GetCrop(PySceneItem *self, PyObject *args){
 	return  pyCrop;
 }
 static PyObject* pySceneItem_Update(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 	
@@ -273,7 +273,7 @@ static PyObject* pySceneItem_Update(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_MoveUp(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
@@ -281,7 +281,7 @@ static PyObject* pySceneItem_MoveUp(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_MoveDown(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
@@ -289,7 +289,7 @@ static PyObject* pySceneItem_MoveDown(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_MoveToTop(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
@@ -297,13 +297,58 @@ static PyObject* pySceneItem_MoveToTop(PySceneItem *self, PyObject *args){
 	return Py_BuildValue("");
 }
 static PyObject* pySceneItem_MoveToBottom(PySceneItem *self, PyObject *args){
-	if (sceneItemExists(self)){
+	if (!sceneItemExists(self)){
 		return NULL;
 	}
 
 	self->sceneItem->MoveToBottom();
 	return Py_BuildValue("");
 }
+
+static PyObject* pySceneItem_SetPos(PySceneItem *self, PyObject *args){
+	if (!sceneItemExists(self)){
+		return NULL;
+	}
+
+	if (PyTuple_Size(args) != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+
+	float x, y;
+	if (!PyArg_ParseTuple(args, "ff", &x,&y)){
+		return NULL;
+	}
+	Vect2 pos(x, y);
+	self->sceneItem->SetPos(pos);
+
+	
+	return Py_BuildValue("");
+}
+
+
+static PyObject* pySceneItem_SetSize(PySceneItem *self, PyObject *args){
+	if (!sceneItemExists(self)){
+		return NULL;
+	}
+
+	if (PyTuple_Size(args) != 2){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+
+	float x, y;
+	if (!PyArg_ParseTuple(args, "ff", &x, &y)){
+		return NULL;
+	}
+	Vect2 pos(x, y);
+	self->sceneItem->SetSize(pos);
+	
+	return Py_BuildValue("");
+}
+
+
+
 
 /*Method Table*/
 static PyMethodDef pySceneItem_methods[] = {
@@ -312,6 +357,8 @@ static PyMethodDef pySceneItem_methods[] = {
 		{ "GetElement", (PyCFunction)pySceneItem_GetElement, METH_VARARGS, "GetElement" },
 		{ "GetPos", (PyCFunction)pySceneItem_GetPos, METH_VARARGS, "GetPos" },
 		{ "GetSize", (PyCFunction)pySceneItem_GetSize, METH_VARARGS, "GetSize" },
+		{ "SetPos", (PyCFunction)pySceneItem_SetPos, METH_VARARGS, "SetPos" },
+		{ "SetSize", (PyCFunction)pySceneItem_SetSize, METH_VARARGS, "SetSize" },
 		{ "GetScale", (PyCFunction)pySceneItem_GetScale, METH_VARARGS, "GetScale" },
 		{ "IsCropped", (PyCFunction)pySceneItem_IsCropped, METH_VARARGS, "IsCropped" },
 		{ "Select", (PyCFunction)pySceneItem_Select, METH_VARARGS, "Select" },
