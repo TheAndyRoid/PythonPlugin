@@ -110,13 +110,13 @@ static PyObject *pyXElement_HasItem(PyXElement *self, PyObject *args){
 	wchar_t *wstr = pyObjectToWSTR(str);
 
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
 	if (self->element->HasItem(wstr)){
 		Py_RETURN_TRUE;
-	}
-	else{
+	}else{
 		Py_RETURN_FALSE;
 	}
 
@@ -139,6 +139,7 @@ static PyObject *pyXElement_GetString(PyXElement *self, PyObject *args){
 	wchar_t *wstr = pyObjectToWSTR(str);
 		
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -163,6 +164,7 @@ static PyObject *pyXElement_GetInt(PyXElement *self, PyObject *args){
 	wchar_t *wstr = pyObjectToWSTR(str);
 
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -182,11 +184,13 @@ static PyObject *pyXElement_GetFloat(PyXElement *self, PyObject *args){
 	}
 	PyObject *str;
 	if (!PyArg_ParseTuple(args, "O", &str)){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
 
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -219,7 +223,12 @@ static PyObject *pyXElement_SetString(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 	wchar_t *wvalue = pyObjectToWSTR(value);
 
-	if (wvalue == NULL || wname == NULL){
+	if (wvalue == NULL){
+		PyErr_SetString(PyExc_TypeError, "Value must be a string");
+		return NULL;
+	}
+	if(wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -242,11 +251,13 @@ static PyObject *pyXElement_SetInt(PyXElement *self, PyObject *args){
 	int value;
 
 	if (!PyArg_ParseTuple(args, "Oi", &name, &value)){
+		PyErr_SetString(PyExc_TypeError, "Value must be a Int");
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -273,6 +284,7 @@ static PyObject *pyXElement_SetFloat(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -299,6 +311,7 @@ static PyObject *pyXElement_SetHex(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -327,6 +340,7 @@ static PyObject *pyXElement_RemoveItem(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a String");
 		return NULL;
 	}
 
@@ -367,6 +381,7 @@ static PyObject *pyXElement_SetName(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -405,7 +420,7 @@ static PyObject *pyXElement_IsElement(PyXElement *self, PyObject *args){
 	}
 
 
-	bool ret = self->element->IsData();
+	bool ret = self->element->IsElement();
 	if (ret == TRUE){
 		Py_RETURN_TRUE;
 	}
@@ -446,12 +461,17 @@ static PyObject *pyXElement_GetStringList(PyXElement *self, PyObject *args){
 	wchar_t *wstr = pyObjectToWSTR(str);
 
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
 	StringList clist;
 	self->element->GetStringList(wstr,clist);
 	delete[] wstr;
+
+	if (clist.Num() == 0){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pylist = PyList_New(clist.Num());
 	for (int i = 0; i < clist.Num(); i++){
@@ -476,12 +496,17 @@ static PyObject *pyXElement_GetIntList(PyXElement *self, PyObject *args){
 	wchar_t *wstr = pyObjectToWSTR(str);
 
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
 	List<int> clist;
 	self->element->GetIntList(wstr, clist);
 	delete[] wstr;
+
+	if (clist.Num() == 0){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pylist = PyList_New(clist.Num());
 	for (int i = 0; i < clist.Num(); i++){
@@ -506,12 +531,17 @@ static PyObject *pyXElement_GetFloatList(PyXElement *self, PyObject *args){
 	wchar_t *wstr = pyObjectToWSTR(str);
 
 	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
 	List<float> clist;
 	//self->element->GetFloatList(wstr, clist);
 	delete[] wstr;
+
+	if (clist.Num() == 0){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pylist = PyList_New(clist.Num());
 	for (int i = 0; i < clist.Num(); i++){
@@ -520,7 +550,7 @@ static PyObject *pyXElement_GetFloatList(PyXElement *self, PyObject *args){
 	}
 	return pylist;
 }
-static PyObject *pyXElement_GetColourList(PyXElement *self, PyObject *args){
+static PyObject *pyXElement_GetColorList(PyXElement *self, PyObject *args){
 	return pyXElement_GetIntList(self, args);
 }
 static PyObject *pyXElement_GetHexList(PyXElement *self, PyObject *args){
@@ -549,6 +579,7 @@ static PyObject *pyXElement_SetStringList(PyXElement *self, PyObject *args){
 
 	wchar_t *wname = pyObjectToWSTR(name);
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -562,7 +593,7 @@ static PyObject *pyXElement_SetStringList(PyXElement *self, PyObject *args){
 		wchar_t *val = pyObjectToWSTR(item);
 		if (val == NULL){
 			PyErr_SetString(PyExc_TypeError, "Found non-String in list ignoring item");
-			break;
+			continue;
 		}
 		clist.Add(val);	
 		delete[] val;
@@ -596,6 +627,7 @@ static PyObject *pyXElement_SetIntList(PyXElement *self, PyObject *args){
 
 	wchar_t *wname = pyObjectToWSTR(name);
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -608,11 +640,10 @@ static PyObject *pyXElement_SetIntList(PyXElement *self, PyObject *args){
 		}
 		if (!PyInt_Check(item)){
 			PyErr_SetString(PyExc_TypeError, "Found non-int in list ignoring");
-			break;
+			continue;
 		}
 		long val = PyInt_AsLong(item);		
-		clist.Add(val);
-		
+		clist.Add(val);		
 	}
 
 
@@ -643,6 +674,7 @@ static PyObject *pyXElement_SetFloatList(PyXElement *self, PyObject *args){
 
 	wchar_t *wname = pyObjectToWSTR(name);
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -655,7 +687,7 @@ static PyObject *pyXElement_SetFloatList(PyXElement *self, PyObject *args){
 		}
 		if (!PyFloat_Check(item)){
 			PyErr_SetString(PyExc_TypeError, "Found non-float in list ignoring");
-			break;
+			continue;
 		}
 		float val = PyFloat_AsDouble(item);
 		clist.Add(val);
@@ -689,6 +721,7 @@ static PyObject *pyXElement_SetHexList(PyXElement *self, PyObject *args){
 
 	wchar_t *wname = pyObjectToWSTR(name);
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 
@@ -701,7 +734,7 @@ static PyObject *pyXElement_SetHexList(PyXElement *self, PyObject *args){
 		}
 		if (!PyLong_Check(item)){
 			PyErr_SetString(PyExc_TypeError, "Found non-Long in list ignoring");
-			break;
+			continue;
 		}
 		DWORD val = PyLong_AsUnsignedLong(item);
 		clist.Add(val);
@@ -713,73 +746,75 @@ static PyObject *pyXElement_SetHexList(PyXElement *self, PyObject *args){
 	delete[] wname;
 	return Py_BuildValue("");
 }
-static PyObject *pyXElement_SetColourList(PyXElement *self, PyObject *args){
+static PyObject *pyXElement_SetColorList(PyXElement *self, PyObject *args){
 	return pyXElement_SetHexList(self, args);
 }
 
-static PyObject *pyXElement_AddString(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddInt(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddFloat(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddHex(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddColor(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddStringList(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddIntList(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddFloatList(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddHexList(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_AddColorList(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
 
-
-
-
-static PyObject *pyXElement_GetBaseItem(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_GetBaseItemByID(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_GetDataItem(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_GetDataItemByID(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
 static PyObject *pyXElement_NumElements(PyXElement *self, PyObject *args){
 	return PyInt_FromLong(self->element->NumElements());
-}
-static PyObject *pyXElement_NumBaseItems(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
-}
-static PyObject *pyXElement_NumDataItems(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
 }
 
 
 
 static PyObject *pyXElement_Import(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
+
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	if (isNULL(self->element)){
+		return NULL;
+	}
+	PyObject *str;
+	if (!PyArg_ParseTuple(args, "O", &str)){
+		return NULL;
+	}
+	wchar_t *wstr = pyObjectToWSTR(str);
+
+	if (wstr == NULL){
+		PyErr_SetString(PyExc_TypeError, "Filename must be a string");
+		return NULL;
+	}
+
+	bool ret = self->element->Import(wstr);
+	delete[] wstr;
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}	
 }
 static PyObject *pyXElement_Export(PyXElement *self, PyObject *args){
-	return Py_BuildValue("");
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	if (isNULL(self->element)){
+		return NULL;
+	}
+	PyObject *str;
+	if (!PyArg_ParseTuple(args, "O", &str)){
+		return NULL;
+	}
+	wchar_t *wstr = pyObjectToWSTR(str);
+
+	if (wstr == NULL){		
+		PyErr_SetString(PyExc_TypeError, "Filename must be a string");
+		return NULL;
+	}
+
+	bool ret = self->element->Export(wstr);
+	delete[] wstr;
+	if (ret){
+		Py_RETURN_TRUE;
+	}
+	else{
+		Py_RETURN_FALSE;
+	}
 }
 
 
@@ -788,7 +823,6 @@ static PyMemberDef PyXElement_members[] = {
 };
 
 static PyMethodDef PyXElement_methods[] = {
-		{ "CopyElement", (PyCFunction)pyXElement_CopyElement, METH_VARARGS, "CopyElement" },
 		{ "ReverseOrder", (PyCFunction)pyXElement_ReverseOrder, METH_VARARGS, "ReverseOrder" },
 		{ "HasItem", (PyCFunction)pyXElement_HasItem, METH_VARARGS, "HasItem" },
 		{ "GetString", (PyCFunction)pyXElement_GetString, METH_VARARGS, "GetString" },
@@ -799,7 +833,7 @@ static PyMethodDef PyXElement_methods[] = {
 		{ "GetStringList", (PyCFunction)pyXElement_GetStringList, METH_VARARGS, "GetStringList" },
 		{ "GetIntList", (PyCFunction)pyXElement_GetIntList, METH_VARARGS, "GetIntList" },
 		{ "GetFloatList", (PyCFunction)pyXElement_GetFloatList, METH_VARARGS, "GetFloatList" },
-		{ "GetColourList", (PyCFunction)pyXElement_GetColourList, METH_VARARGS, "GetColourList" },
+		{ "GetColorList", (PyCFunction)pyXElement_GetColorList, METH_VARARGS, "GetColorList" },
 		{ "GetHexList", (PyCFunction)pyXElement_GetHexList, METH_VARARGS, "GetHexList" },
 		{ "SetString", (PyCFunction)pyXElement_SetString, METH_VARARGS, "SetString" },
 		{ "SetInt", (PyCFunction)pyXElement_SetInt, METH_VARARGS, "SetInt" },
@@ -809,18 +843,8 @@ static PyMethodDef PyXElement_methods[] = {
 		{ "SetStringList", (PyCFunction)pyXElement_SetStringList, METH_VARARGS, "SetStringList" },
 		{ "SetIntList", (PyCFunction)pyXElement_SetIntList, METH_VARARGS, "SetIntList" },
 		{ "SetFloatList", (PyCFunction)pyXElement_SetFloatList, METH_VARARGS, "SetFloatList" },
-		{ "SetColourList", (PyCFunction)pyXElement_SetColourList, METH_VARARGS, "SetColourList" },
+		{ "SetColorList", (PyCFunction)pyXElement_SetColorList, METH_VARARGS, "SetColorList" },
 		{ "SetHexList", (PyCFunction)pyXElement_SetHexList, METH_VARARGS, "SetHexList" },
-		{ "AddString", (PyCFunction)pyXElement_AddString, METH_VARARGS, "AddString" },
-		{ "AddInt", (PyCFunction)pyXElement_AddInt, METH_VARARGS, "AddInt" },
-		{ "AddFloat", (PyCFunction)pyXElement_AddFloat, METH_VARARGS, "AddFloat" },
-		{ "AddHex", (PyCFunction)pyXElement_AddHex, METH_VARARGS, "AddHex" },
-		{ "AddColor", (PyCFunction)pyXElement_AddColor, METH_VARARGS, "AddColor" },
-		{ "AddStringList", (PyCFunction)pyXElement_AddStringList, METH_VARARGS, "AddStringList" },
-		{ "AddIntList", (PyCFunction)pyXElement_AddIntList, METH_VARARGS, "AddIntList" },
-		{ "AddFloatList", (PyCFunction)pyXElement_AddFloatList, METH_VARARGS, "AddFloatList" },
-		{ "AddHexList", (PyCFunction)pyXElement_AddHexList, METH_VARARGS, "AddHexList" },
-		{ "AddColorList", (PyCFunction)pyXElement_AddColorList, METH_VARARGS, "AddColorList" },
 		{ "RemoveItem", (PyCFunction)pyXElement_RemoveItem, METH_VARARGS, "RemoveItem" },
 		{ "GetElement", (PyCFunction)pyXElement_GetElement, METH_VARARGS, "GetElement" },
 		{ "GetElementByID", (PyCFunction)pyXElement_GetElementByID, METH_VARARGS, "GetElementByID" },
@@ -830,13 +854,7 @@ static PyMethodDef PyXElement_methods[] = {
 		{ "CopyElement", (PyCFunction)pyXElement_CopyElement, METH_VARARGS, "CopyElement" },
 		{ "RemoveElement", (PyCFunction)pyXElement_RemoveElement, METH_VARARGS, "RemoveElement" },
 		{ "GetParent", (PyCFunction)pyXElement_GetParent, METH_VARARGS, "GetParent" },
-		{ "GetBaseItem", (PyCFunction)pyXElement_GetBaseItem, METH_VARARGS, "GetBaseItem" },
-		{ "GetBaseItemByID", (PyCFunction)pyXElement_GetBaseItemByID, METH_VARARGS, "GetBaseItemByID" },
-		{ "GetDataItem", (PyCFunction)pyXElement_GetDataItem, METH_VARARGS, "GetDataItem" },
-		{ "GetDataItemByID", (PyCFunction)pyXElement_GetDataItemByID, METH_VARARGS, "GetDataItemByID" },
 		{ "NumElements", (PyCFunction)pyXElement_NumElements, METH_VARARGS, "NumElements" },
-		{ "NumBaseItems", (PyCFunction)pyXElement_NumBaseItems, METH_VARARGS, "NumBaseItems" },
-		{ "NumDataItems", (PyCFunction)pyXElement_NumDataItems, METH_VARARGS, "NumDataItems" },
 		{ "MoveUp", (PyCFunction)pyXElement_MoveUp, METH_VARARGS, "MoveUp" },
 		{ "MoveDown", (PyCFunction)pyXElement_MoveDown, METH_VARARGS, "MoveDown" },
 		{ "MoveToTop", (PyCFunction)pyXElement_MoveToTop, METH_VARARGS, "MoveToTop" },
@@ -905,7 +923,6 @@ static PyObject *pyXElement_GetParent(PyXElement *self, PyObject *args){
 
 	XElement* res = self->element->GetParent();
 
-
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;
 
@@ -928,12 +945,15 @@ static PyObject *pyXElement_GetElement(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 	XElement* res = self->element->GetElement(wname);
 	delete[] wname;
 
-
+	if (!res){
+		Py_RETURN_NONE;
+	}
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;
 
@@ -942,7 +962,7 @@ static PyObject *pyXElement_GetElement(PyXElement *self, PyObject *args){
 static PyObject *pyXElement_CopyElement(PyXElement *self, PyObject *args){
 
 	long argLength = PyTuple_Size(args);
-	if (argLength != 1){
+	if (argLength != 2){
 		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
 		return NULL;
 	}
@@ -950,16 +970,27 @@ static PyObject *pyXElement_CopyElement(PyXElement *self, PyObject *args){
 		return NULL;
 	}
 	PyObject *name;
+	PyObject *parent;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "OO", &parent,&name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
-	XElement* res = self->element->CopyElement(self->element,wname);
+
+	//convert PyObject to PyXElement.
+
+	
+	if (strcmp(parent->ob_type->tp_name,"OBS.XElement")!=0){	
+		PyErr_SetString(PyExc_TypeError, "Parent must be a OBS.XElement");
+		return NULL;
+	}
+	
+	XElement* res = self->element->CopyElement(((PyXElement*)parent)->element, wname);
 	delete[] wname;
 
 
@@ -985,12 +1016,14 @@ static PyObject *pyXElement_CreateElement(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 	XElement* res = self->element->CreateElement(wname);
 	delete[] wname;
-
-
+	if (!res){
+		Py_RETURN_NONE;
+	}
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;
 
@@ -998,7 +1031,7 @@ static PyObject *pyXElement_CreateElement(PyXElement *self, PyObject *args){
 }
 static PyObject *pyXElement_GetElementByItem(PyXElement *self, PyObject *args){
 	long argLength = PyTuple_Size(args);
-	if (argLength != 1){
+	if (argLength != 3){
 		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
 		return NULL;
 	}
@@ -1015,13 +1048,24 @@ static PyObject *pyXElement_GetElementByItem(PyXElement *self, PyObject *args){
 	wchar_t *witemValue = pyObjectToWSTR(itemValue);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
+		return NULL;
+	}
+	if (witemName == NULL){
+		PyErr_SetString(PyExc_TypeError, "Itemname must be a string");
+		return NULL;
+	}
+	if (witemValue == NULL){
+		PyErr_SetString(PyExc_TypeError, "itemvalue must be a string");
 		return NULL;
 	}
 	XElement* res = self->element->GetElementByItem(wname,witemName,witemValue);
 	delete[] wname;
 	delete[] witemName;
 	delete[] witemValue;
-
+	if (!res){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;
@@ -1040,10 +1084,13 @@ static PyObject *pyXElement_GetElementByID(PyXElement *self, PyObject *args){
 	DWORD elementID;
 
 	if (!PyArg_ParseTuple(args, "k", &elementID)){
+		PyErr_SetString(PyExc_TypeError, "Expect integer for id");
 		return NULL;
 	}
 	XElement* res = self->element->GetElementByID(elementID);
-
+	if (!res){
+		Py_RETURN_NONE;
+	}
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;
 
@@ -1063,21 +1110,13 @@ static PyObject *pyXElement_RemoveElement(PyXElement *self, PyObject *args){
 	if (!PyArg_ParseTuple(args, "O", &obj)){
 		return NULL;
 	}
-	wchar_t *wname = NULL;
-	if (PyString_Check(obj) || PyUnicode_Check(obj)){
-		//String type object
-		wname = pyObjectToWSTR(obj);
-		if (wname == NULL){
-			return NULL;
-		}
-		self->element->RemoveElement(wname);
-		delete[] wname;
-	}
-	else if (strcmp(obj->ob_type->tp_name, "OBS.XElement") == 0){
+	if (strcmp(obj->ob_type->tp_name, "OBS.XElement") == 0){
 		//element
 		
-		PyXElement *element = (PyXElement *)obj;
-		self->element->RemoveElement(element->element);
+		PyXElement *pyelement = (PyXElement *)obj;
+		XElement *el = pyelement->element;
+		self->element->RemoveElement(el);
+		pyelement->element = NULL;
 	}
 	else{
 		PyErr_SetString(PyExc_TypeError, "Wrong type of argument");
@@ -1103,6 +1142,7 @@ static PyObject *pyXElement_InsertElement(PyXElement *self, PyObject *args){
 	wchar_t *wname = pyObjectToWSTR(name);
 
 	if (wname == NULL){
+		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
 	XElement* res = self->element->InsertElement(pos,wname);

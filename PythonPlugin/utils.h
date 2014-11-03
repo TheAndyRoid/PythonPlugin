@@ -42,8 +42,10 @@ static wchar_t * pyObjectToWSTR(PyObject *str){
 		mbstowcs(&*wstr, cstr, len);
 		return wstr;
 	}
-	
-	return NULL;
+	else{
+		//Not a string
+		return NULL;
+	}
 }
 
 
@@ -59,7 +61,7 @@ static PyObject * CTSTRtoPyUnicode(const wchar_t *ctstr){
 
 static bool isNULL(void * obj){
 	if (obj == NULL){
-		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		PyErr_SetString(PyExc_RuntimeWarning, "XElement element in NULL(probably deleted)");
 		return true;
 	}
 	else{
