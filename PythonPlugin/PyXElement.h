@@ -922,6 +922,9 @@ static PyObject *pyXElement_GetParent(PyXElement *self, PyObject *args){
 	}
 
 	XElement* res = self->element->GetParent();
+	if (!res){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;
@@ -992,7 +995,9 @@ static PyObject *pyXElement_CopyElement(PyXElement *self, PyObject *args){
 	
 	XElement* res = self->element->CopyElement(((PyXElement*)parent)->element, wname);
 	delete[] wname;
-
+	if (!res){
+		Py_RETURN_NONE;
+	}
 
 	PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
 	((PyXElement*)pyConfig)->element = res;

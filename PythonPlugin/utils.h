@@ -157,3 +157,23 @@ static void PythonRunString(String toRun){
 
 
 
+static bool isPythonInPath(){
+	char* pypath = getenv("PYTHONPATH");
+	if (pypath == NULL){
+		Log(TEXT("Python Plugin - Did Not find `PYTHONPATH` environment variable. Will search in `PATH`"));
+	}
+	char* path = getenv("PATH");
+	if (path){
+		char *python = strstr(path, "Python27");
+		if (python){
+			return true;
+		}
+		else{
+			AppWarning(TEXT("Python Plugin - Could not find 'Python27' in PATH environment variable."));
+		}
+	}
+	else{
+		Log(TEXT("Python Plugin - Could not get PATH environment variable."));
+	}
+	return false;
+}

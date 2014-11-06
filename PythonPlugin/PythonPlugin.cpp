@@ -314,6 +314,7 @@ PythonPlugin::PythonPlugin()
 	OBSRegisterImageSourceClass(VIDEO_SOURCE_CLASS, STR("ClassName"), (OBSCREATEPROC)CreatePythonSource, (OBSCONFIGPROC)ConfigurePythonSource);
 
 
+	
 	Py_Initialize();
 	PyEval_InitThreads();
 	
@@ -400,8 +401,24 @@ CTSTR GetPluginDescription()
 }
 
 bool LoadPlugin(){
-	if (PythonPlugin::instance != NULL)
+
+	if (!isPythonInPath()){
+		int ret = OBSMessageBox(OBSGetMainWindow(), TEXT("'Python27' not found in PATH environment variable! \n Python Plugin will instantly close OBS if Python can't be loaded.\n Attempt to load Python Plugin?\n"), TEXT("ERROR- 'Python27' NOT IN PATH"), 4);
+		if (ret == 7){ // No
+			AppWarning(TEXT("Python Plugin - User Aborted Loading!"));
+			return false;
+		}
+		else if(ret == 6){ //yes
+			AppWarning(TEXT("Python Plugin - User Ignored warning! Attempting to Load"));
+		}
+		else{
+			return false;
+		}
+	}
+
+	if (PythonPlugin::instance != NULL){
 		return false;
+	}
 	PythonPlugin::instance = new PythonPlugin();
 	return true;
 }
