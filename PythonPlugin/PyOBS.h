@@ -561,49 +561,113 @@ static PyMethodDef pyOBS_methods[] = {
 		{ NULL, NULL, 0, NULL }
 };
 
+
+
+struct module_state {
+	PyObject *error;
+};
+
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#else
+#define GETSTATE(m) (&_state)
+static struct module_state _state;
+#endif
+
+static PyObject *
+error_out(PyObject *m) {
+	struct module_state *st = GETSTATE(m);
+	PyErr_SetString(st->error, "something bad happened");
+	return NULL;
+}
+
+
+#if PY_MAJOR_VERSION >= 3
+
+static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
+	Py_VISIT(GETSTATE(m)->error);
+	return 0;
+}
+
+static int myextension_clear(PyObject *m) {
+	Py_CLEAR(GETSTATE(m)->error);
+	return 0;
+}
+
+
+static struct PyModuleDef moduledef = {
+	PyModuleDef_HEAD_INIT,
+	"OBS",
+	NULL,
+	sizeof(struct module_state),
+	pyOBS_methods,
+	NULL,
+	myextension_traverse,
+	myextension_clear,
+	NULL
+};
+
+#define INITERROR return NULL
+
 PyMODINIT_FUNC
-initOBS(void)
+PyInit_OBS(void)
+
+#else
+#define INITERROR return
+
+
+PyMODINIT_FUNC
+PyInit_OBS(void)
+#endif
 {
 	
-
+#if PY_MAJOR_VERSION >= 3
+	PyObject *m = PyModule_Create(&moduledef);
+#else
 	PyObject *m =  Py_InitModule("OBS", pyOBS_methods);
+#endif
+
+	
 	if (m == NULL)
-		return;
+		INITERROR;
 
 	if (PyType_Ready(&pyImageSourceType) < 0)
-		return;
+		INITERROR;
 	Py_INCREF(&pyImageSourceType);
 	PyModule_AddObject(m, "ImageSource", (PyObject *)&pyImageSourceType);
 
 	if (PyType_Ready(&PyVect2_Object) < 0)
-		return;
+		INITERROR;
 	Py_INCREF(&PyVect2_Object);
 	PyModule_AddObject(m, "Vect2", (PyObject *)&PyVect2_Object);
 
 
 	if (PyType_Ready(&PyVect4_Object) < 0)
-		return;
+		INITERROR;
 	Py_INCREF(&PyVect4_Object);
 	PyModule_AddObject(m, "Vect4", (PyObject *)&PyVect4_Object);
 
 
 	if (PyType_Ready(&PyXElement_Object) < 0)
-		return;
+		INITERROR;
 	Py_INCREF(&PyXElement_Object);
 	PyModule_AddObject(m, "XElement", (PyObject *)&PyXElement_Object);
 
 
 	if (PyType_Ready(&pySceneType) < 0)
-		return;
+		INITERROR;
 	Py_INCREF(&pySceneType);
 	PyModule_AddObject(m, "Scene", (PyObject *)&pySceneType);
 
 
 	if (PyType_Ready(&pySceneItemType) < 0)
-		return;
+		INITERROR;
 	Py_INCREF(&pySceneItemType);
 	PyModule_AddObject(m, "SceneItem", (PyObject *)&pySceneItemType);
 
+#if PY_MAJOR_VERSION >= 3
+	return m;
+#endif
 }
 
 

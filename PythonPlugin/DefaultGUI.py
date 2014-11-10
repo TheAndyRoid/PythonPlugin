@@ -15,10 +15,26 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 """
+try:
+    from Tkinter import *
+    from tkFileDialog import *
+except ImportError:
+    from tkinter import *
+    from tkinter.filedialog import *
+try:
+    from ttk import Frame, Button, Label, Style, Combobox, LabelFrame
+except ImportError:
+    from tkinter.ttk import Frame, Button, Label, Style, Combobox, LabelFrame
 
-from Tkinter import *
-from ttk import Frame, Button, Label, Style, Combobox, LabelFrame
-from tkFileDialog import *
+
+if sys.version < '3':
+    import codecs
+    def u(x):
+        return unicode(x,"utf-8")
+else:
+    def u(x):
+        return x
+
 import ctypes,ast
 import ctypes.wintypes
 
@@ -44,7 +60,7 @@ class gui:
         r = self.winPos(self.obshwnd)
         self.centerOverOBS(r)
         
-        self.parent.geometry(str(self.width)+"x"+str(self.height)+"+"+str(self.left)+"+"+str(self.top))
+        self.parent.geometry("%sx%s+%s+%s" % (self.width,self.height,int(self.left),int(self.top)))
         
         self.mainFileSTR = StringVar() #filename
         self.mainSelectedClass = StringVar()
@@ -72,12 +88,13 @@ class gui:
     def mainRead(self):
         
         try:
+            print(self.mainFileSTR.get())
             self.mainFile = open(self.mainFileSTR.get(),'r')
             text = self.mainFile.read()
             p = ast.parse(text)
             self.mainFileClasses = [ node.name for node in ast.walk(p) if isinstance(node, ast.ClassDef)]
         except:
-            print ("Problem Loading File")
+            print ("Problem Loading Main File")
             self.mainFileClasses = []
         
         self.setMainComboArea()
@@ -119,7 +136,7 @@ class gui:
             p = ast.parse(text)
             self.GUIFileClasses = [ node.name for node in ast.walk(p) if isinstance(node, ast.ClassDef)]
         except:
-            print ("Problem Loading File")
+            print ("Problem Loading GUI File")
             self.GUIFileClasses = []
             
         self.setGUIComboArea()
@@ -146,9 +163,9 @@ class gui:
 
     def applySettings(self,event):
         OBS.Log(self.mainFileSTR.get())
-        OBS.Log(unicode(self.optionMainClass.get(),"utf-8"))
+        OBS.Log(u(self.optionMainClass.get()))
         OBS.Log(self.GUIFileSTR.get())
-        OBS.Log(unicode(self.optionGUIClass.get(),"utf-8"))
+        OBS.Log(u(self.optionGUIClass.get()))
         self.save()
         self.closeGUI(event)
 
@@ -158,9 +175,9 @@ class gui:
     
     def save(self):        
         self.config.SetString(u"PythonMainFile",self.mainFileSTR.get())
-        self.config.SetString(u"PythonMainClass",unicode(self.optionMainClass.get(),"utf-8"))
+        self.config.SetString(u"PythonMainClass",u(self.optionMainClass.get()))
         self.config.SetString(u"PythonGUIFile",self.GUIFileSTR.get())
-        self.config.SetString(u"PythonGUIClass",unicode(self.optionGUIClass.get(),"utf-8"))
+        self.config.SetString(u"PythonGUIClass",u(self.optionGUIClass.get()))
         self.config.SetInt(u"Persistant",0)
         self.config.SetInt(u"Background",0)
         

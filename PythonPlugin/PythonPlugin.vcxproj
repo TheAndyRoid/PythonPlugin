@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="34Debug|Win32">
@@ -278,7 +278,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(Platform)\$(Configuration)\$(ProjectName).dll" "C:\Program Files (x86)\OBS\plugins\$(ProjectName).dll"
-"C:\Program Files (x86)\NSIS\makensis.exe" C:\Projects\PythonPlugin\installer\installer.nsi</Command>
+"C:\Program Files (x86)\NSIS\makensis.exe" C:\Projects\PythonPlugin\installer\27installer.nsi</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='34Release|Win32'">
@@ -308,7 +308,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(Platform)\$(Configuration)\$(ProjectName).dll" "C:\Program Files (x86)\OBS\plugins\$(ProjectName).dll"
-"C:\Program Files (x86)\NSIS\makensis.exe" C:\Projects\PythonPlugin\installer\installer.nsi</Command>
+"C:\Program Files (x86)\NSIS\makensis.exe" C:\Projects\PythonPlugin\installer\34installer.nsi</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='27Release|x64'">

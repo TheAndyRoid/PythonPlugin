@@ -173,12 +173,21 @@ static bool isPythonInPath(){
 	}
 	char* path = getenv("PATH");
 	if (path){
+#if PY_MAJOR_VERSION >= 3
+		char *python = strstr(path, "Python34");
+#else
 		char *python = strstr(path, "Python27");
+#endif		
 		if (python){
 			return true;
 		}
 		else{
+#if PY_MAJOR_VERSION >= 3
+			AppWarning(TEXT("Python Plugin - Could not find 'Python34' in PATH environment variable."));
+#else
 			AppWarning(TEXT("Python Plugin - Could not find 'Python27' in PATH environment variable."));
+#endif
+			
 		}
 	}
 	else{

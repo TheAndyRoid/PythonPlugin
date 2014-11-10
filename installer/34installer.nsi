@@ -1,7 +1,7 @@
 ; Script generated with the Venis Install Wizard
 
 ; Define your application name
-!define VERSION "0.2.7"
+!define VERSION "0.2.8"
 !define APPNAME "OBS Python Plugin"
 !define APPNAMEANDVERSION "${APPNAME} ${VERSION}"
 
@@ -13,7 +13,7 @@
 Name "${APPNAMEANDVERSION}"
 InstallDir "$PROGRAMFILES32\OBS\plugins"
 InstallDirRegKey HKLM "Software\${APPNAME}" ""
-OutFile "OBSPythonPlugin-${VERSION}-Installer.exe"
+OutFile "OBSPythonPlugin-${VERSION}.py3.4.exe"
 
 ; Modern interface settings
 !include "MUI.nsh"
@@ -41,7 +41,7 @@ Section "OBS Python Plugin" Section1
 	; Copy DLL
 	
 	SetOutPath "${DLLDIR}\"
-	File "..\PythonPlugin\Win32\Release\PythonPlugin.dll"
+	File "..\PythonPlugin\Win32\34Release\PythonPlugin.dll"
 	
 	;Copy Example Script
 	

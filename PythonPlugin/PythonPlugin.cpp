@@ -311,7 +311,9 @@ PythonPlugin::PythonPlugin()
 	OBSRegisterImageSourceClass(VIDEO_SOURCE_CLASS, STR("ClassName"), (OBSCREATEPROC)CreatePythonSource, (OBSCONFIGPROC)ConfigurePythonSource);
 
 
-	
+	//Load the OBS Extension
+	PyImport_AppendInittab("OBS", PyInit_OBS);
+
 	Py_Initialize();
 	PyEval_InitThreads();
 	
@@ -328,8 +330,8 @@ PythonPlugin::PythonPlugin()
 	PySys_SetArgv(argc, argv);
 	
 
-	//Load the OBS Extension
-	initOBS();
+	
+
 
 
 	String path = OBSGetPluginDataPath();
@@ -345,16 +347,22 @@ PythonPlugin::PythonPlugin()
 
 
 	PythonRunString(String("import sys,os"));
+	
 
 	PythonRunString(String("os.makedirs('") + path + String("')"));
 	PythonRunString(String("sys.path.append('") + path + String("')"));
 	PythonRunString(String("sys.path.append('") + appPath + String("')"));
-
-
+#if PY_MAJOR_VERSION >= 3
+	PythonRunString(String("os.environ['PYTHONUNBUFFERED'] = '1'"));
+	PythonRunString(String("sys.stdout = open('") + path + String("/stdOut.txt','w',1)"));
+	PythonRunString(String("sys.stderr = open('") + path + String("/stdErr.txt','w',1)"));
+#else
 	PythonRunString(String("sys.stdout = open('") + path + String("/stdOut.txt','w',0)"));
 	PythonRunString(String("sys.stderr = open('") + path + String("/stdErr.txt','w',0)"));
+#endif
+	PythonRunString(String("print('Python ' + sys.version)"));
 
-
+	pyHasError();
 	//Release the GIL	
 	PyThreadState *pts = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(pts);
@@ -405,7 +413,13 @@ CTSTR GetPluginDescription()
 bool LoadPlugin(){
 
 	if (!isPythonInPath()){
+#if PY_MAJOR_VERSION >= 3
+		int ret = OBSMessageBox(OBSGetMainWindow(), TEXT("'Python34' not found in PATH environment variable! \n Python Plugin will instantly close OBS if Python can't be loaded.\n Attempt to load Python Plugin?\n"), TEXT("ERROR- 'Python27' NOT IN PATH"), 4);
+
+#else
 		int ret = OBSMessageBox(OBSGetMainWindow(), TEXT("'Python27' not found in PATH environment variable! \n Python Plugin will instantly close OBS if Python can't be loaded.\n Attempt to load Python Plugin?\n"), TEXT("ERROR- 'Python27' NOT IN PATH"), 4);
+
+#endif
 		if (ret == 7){ // No
 			AppWarning(TEXT("Python Plugin - User Aborted Loading!"));
 			return false;

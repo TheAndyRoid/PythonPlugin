@@ -87,7 +87,7 @@ class ColourSquare(OBS.ImageSource):
         self.BeginScene()
 
     def Tick(self,seconds):
-        print u"tick"
+        print (u"tick")
         pass
     
     def BeginScene(self):
