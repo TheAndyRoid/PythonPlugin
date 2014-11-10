@@ -38,7 +38,7 @@ PyVect2_dealloc(PyVect2Object* self)
 {
 	Py_XDECREF(self->y);
 	Py_XDECREF(self->x);
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
@@ -108,8 +108,7 @@ static PyMethodDef PyVect2_methods[] = {
 };
 
 static PyTypeObject PyVect2_Object = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.Vect2",             /*tp_name*/
 	sizeof(PyVect2Object),             /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

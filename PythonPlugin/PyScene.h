@@ -56,7 +56,7 @@ static void
 pyScene_dealloc(PyScene* self)
 {
 	self->scene = NULL;
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 
 }
 
@@ -145,9 +145,9 @@ static PyObject* pyScene_RemoveImageSource(PyScene *self, PyObject *args){
 	}
 
 	
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -229,7 +229,7 @@ static PyObject* pyScene_NumSceneItems(PyScene *self, PyObject *args){
 	if (!sceneExists(self)){
 		return NULL;
 	}
-	return PyInt_FromLong(self->scene->NumSceneItems());
+	return PyLong_FromLong(self->scene->NumSceneItems());
 }
 static PyObject* pyScene_GetSceneItemByName(PyScene *self, PyObject *args){
 	if (!sceneExists(self)){
@@ -242,9 +242,9 @@ static PyObject* pyScene_GetSceneItemByName(PyScene *self, PyObject *args){
 		return NULL;
 	}
 	
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);	
@@ -325,8 +325,7 @@ static PyMemberDef pyScene_members[] = {
 
 /*Python Type Object */
 static PyTypeObject pySceneType = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.ImageSource",         /*tp_name*/
 	sizeof(PyScene),     /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

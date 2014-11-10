@@ -43,7 +43,7 @@ static void
 PyXElement_dealloc(PyXElement* self)
 {
 	self->element = NULL;
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
@@ -103,8 +103,8 @@ static PyObject *pyXElement_HasItem(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -132,8 +132,8 @@ static PyObject *pyXElement_GetString(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}	
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -157,7 +157,7 @@ static PyObject *pyXElement_GetInt(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
+	PyUnicodeObject *str;
 	if (!PyArg_ParseTuple(args, "O", &str)){
 		return NULL;
 	}
@@ -171,7 +171,7 @@ static PyObject *pyXElement_GetInt(PyXElement *self, PyObject *args){
 	int result = self->element->GetInt(wstr);
 	delete[] wstr;
 
-	return PyInt_FromLong(result);
+	return PyLong_FromLong(result);
 }
 static PyObject *pyXElement_GetFloat(PyXElement *self, PyObject *args){
 	long argLength = PyTuple_Size(args);
@@ -182,8 +182,8 @@ static PyObject *pyXElement_GetFloat(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		PyErr_SetString(PyExc_TypeError, "Name must be a string");
 		return NULL;
 	}
@@ -215,9 +215,10 @@ static PyObject *pyXElement_SetString(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name, *value;
+	PyUnicodeObject *name;
+	PyUnicodeObject *value;
 
-	if (!PyArg_ParseTuple(args, "OO", &name, &value)){
+	if (!PyArg_ParseTuple(args, "UU", &name, &value)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -247,10 +248,10 @@ static PyObject *pyXElement_SetInt(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 	int value;
 
-	if (!PyArg_ParseTuple(args, "Oi", &name, &value)){
+	if (!PyArg_ParseTuple(args, "Ui", &name, &value)){
 		PyErr_SetString(PyExc_TypeError, "Value must be a Int");
 		return NULL;
 	}
@@ -275,10 +276,10 @@ static PyObject *pyXElement_SetFloat(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 	float value;
 
-	if (!PyArg_ParseTuple(args, "Of", &name, &value)){
+	if (!PyArg_ParseTuple(args, "Uf", &name, &value)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -302,10 +303,10 @@ static PyObject *pyXElement_SetHex(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 	DWORD value;
 
-	if (!PyArg_ParseTuple(args, "Ok", &name, &value)){
+	if (!PyArg_ParseTuple(args, "Uk", &name, &value)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -332,9 +333,9 @@ static PyObject *pyXElement_RemoveItem(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -373,9 +374,9 @@ static PyObject *pyXElement_SetName(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -454,8 +455,8 @@ static PyObject *pyXElement_GetStringList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -489,8 +490,8 @@ static PyObject *pyXElement_GetIntList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -510,7 +511,7 @@ static PyObject *pyXElement_GetIntList(PyXElement *self, PyObject *args){
 
 	PyObject *pylist = PyList_New(clist.Num());
 	for (int i = 0; i < clist.Num(); i++){
-		PyObject *item = PyInt_FromLong(clist.GetElement(i));
+		PyObject *item = PyLong_FromLong(clist.GetElement(i));
 		PyList_Append(pylist, item);
 	}
 	return pylist;
@@ -524,8 +525,8 @@ static PyObject *pyXElement_GetFloatList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -565,9 +566,10 @@ static PyObject *pyXElement_SetStringList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name, *pylist;
+	PyUnicodeObject *name;
+	PyObject *pylist;
 
-	if (!PyArg_ParseTuple(args, "OO", &name, &pylist)){
+	if (!PyArg_ParseTuple(args, "UO", &name, &pylist)){
 		return NULL;
 	}
 	
@@ -585,7 +587,7 @@ static PyObject *pyXElement_SetStringList(PyXElement *self, PyObject *args){
 
 	StringList clist;
 	for (int i = 0; i < PyList_Size(pylist); i++){
-		PyObject *item = PyList_GetItem(pylist,i);
+		PyObject *item = PyList_GetItem(pylist, i);
 		if (item == NULL){
 			delete[] wname;
 			return NULL;
@@ -613,9 +615,10 @@ static PyObject *pyXElement_SetIntList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name, *pylist;
+	PyUnicodeObject *name;
+	PyObject *pylist;
 
-	if (!PyArg_ParseTuple(args, "OO", &name, &pylist)){
+	if (!PyArg_ParseTuple(args, "UO", &name, &pylist)){
 		return NULL;
 	}
 
@@ -638,11 +641,11 @@ static PyObject *pyXElement_SetIntList(PyXElement *self, PyObject *args){
 			delete[] wname;
 			return NULL;
 		}
-		if (!PyInt_Check(item)){
+		if (!PyLong_Check(item)){
 			PyErr_SetString(PyExc_TypeError, "Found non-int in list ignoring");
 			continue;
 		}
-		long val = PyInt_AsLong(item);		
+		long val = PyLong_AsLong(item);		
 		clist.Add(val);		
 	}
 
@@ -660,9 +663,10 @@ static PyObject *pyXElement_SetFloatList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name, *pylist;
+	PyUnicodeObject *name;
+	PyObject *pylist;
 
-	if (!PyArg_ParseTuple(args, "OO", &name, &pylist)){
+	if (!PyArg_ParseTuple(args, "UO", &name, &pylist)){
 		return NULL;
 	}
 
@@ -707,9 +711,10 @@ static PyObject *pyXElement_SetHexList(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name, *pylist;
+	PyUnicodeObject *name;
+	PyObject *pylist;
 
-	if (!PyArg_ParseTuple(args, "OO", &name, &pylist)){
+	if (!PyArg_ParseTuple(args, "UO", &name, &pylist)){
 		return NULL;
 	}
 
@@ -752,7 +757,7 @@ static PyObject *pyXElement_SetColorList(PyXElement *self, PyObject *args){
 
 
 static PyObject *pyXElement_NumElements(PyXElement *self, PyObject *args){
-	return PyInt_FromLong(self->element->NumElements());
+	return PyLong_FromLong(self->element->NumElements());
 }
 
 
@@ -767,8 +772,8 @@ static PyObject *pyXElement_Import(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -796,8 +801,8 @@ static PyObject *pyXElement_Export(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *str;
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	PyUnicodeObject *str;
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
 	wchar_t *wstr = pyObjectToWSTR(str);
@@ -869,8 +874,7 @@ static PyMethodDef PyXElement_methods[] = {
 };
 
 static PyTypeObject PyXElement_Object = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.XElement",             /*tp_name*/
 	sizeof(PyXElement),             /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
@@ -940,9 +944,9 @@ static PyObject *pyXElement_GetElement(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -972,10 +976,10 @@ static PyObject *pyXElement_CopyElement(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 	PyObject *parent;
 
-	if (!PyArg_ParseTuple(args, "OO", &parent,&name)){
+	if (!PyArg_ParseTuple(args, "OU", &parent,&name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -1013,9 +1017,9 @@ static PyObject *pyXElement_CreateElement(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -1043,9 +1047,9 @@ static PyObject *pyXElement_GetElementByItem(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name,*itemName,*itemValue;
+	PyUnicodeObject *name,*itemName,*itemValue;
 
-	if (!PyArg_ParseTuple(args, "OOO", &name,&itemName,&itemValue)){
+	if (!PyArg_ParseTuple(args, "UUU", &name,&itemName,&itemValue)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -1138,7 +1142,7 @@ static PyObject *pyXElement_InsertElement(PyXElement *self, PyObject *args){
 	if (isNULL(self->element)){
 		return NULL;
 	}
-	PyObject *name;
+	PyUnicodeObject *name;
 	UINT pos;
 
 	if (!PyArg_ParseTuple(args, "IO",&pos, &name)){

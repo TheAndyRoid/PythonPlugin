@@ -54,7 +54,7 @@ pyImageSource_dealloc(pyImageSource* self)
 	Py_XDECREF(self->bufferB);
 	Py_XDECREF(self->formatString);
 	self->cppImageSource = NULL;
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 	
 }
 
@@ -246,7 +246,7 @@ static PyObject * pyImageSource_GetCropping(pyImageSource *self, PyObject *args)
 		Log(TEXT("OBSModule null"));
 	}
 
-	PyObject * vect4 = PyObject_GetAttr(OBSModule, PyString_FromString("Vect4"));
+	PyObject * vect4 = PyObject_GetAttr(OBSModule, PyUnicode_FromString("Vect4"));
 	if (vect4 == NULL){
 		Log(TEXT("vect4 null"));
 		return Py_BuildValue("");
@@ -263,7 +263,8 @@ static PyObject * pyImageSource_GetCropping(pyImageSource *self, PyObject *args)
 
 
 static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
-	PyObject *bufA,*bufB,*format;
+	PyObject *bufA, *bufB;
+	PyUnicodeObject *format;
 
 	CppImageSource* cimg = self->cppImageSource;
 	long width, height;
@@ -280,7 +281,7 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 	}
 
 	if (doubleBuffer){
-		if (!PyArg_ParseTuple(args, "OOOll:set_callback", &bufA, &bufB, &format, &width, &height)){
+		if (!PyArg_ParseTuple(args, "OOUll:set_callback", &bufA, &bufB, &format, &width, &height)){
 			return NULL;
 		}
 		if (!PyByteArray_Check(bufA)){
@@ -291,13 +292,20 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 			PyErr_SetString(PyExc_TypeError, "Argument 2 must be a Python bytearray compatable object");
 			return NULL;
 		}
-		if (!PyString_Check(format)){
+		if (!PyUnicode_Check(format)){
 			PyErr_SetString(PyExc_TypeError, "Argument 3 must be a Python string object");
 			return NULL;
 		}
 
+		PyObject *pyBytesStr = PyUnicode_AsASCIIString((PyObject*)format);
+		if (!pyBytesStr){
+			PyErr_SetString(PyExc_TypeError, "Unknow buffer format");
+			return NULL;
+		}
+
+
 		///check string format here
-		if (!cimg->setupFormats(PyString_AsString(format))){
+		if (!cimg->setupFormats(PyBytes_AsString(pyBytesStr))){
 			PyErr_SetString(PyExc_TypeError, "Unknow buffer format");
 			return NULL;
 		}
@@ -331,14 +339,14 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 		
 		Py_XDECREF(self->formatString);
 		Py_INCREF(format);
-		self->formatString = format;
+		self->formatString = (PyObject*)format;
 
 
 		cimg->setupDoubleBuffers(PyByteArray_AsString(bufA), PyByteArray_AsString(bufB),width,height);
 
 	}
 	else{
-		if (!PyArg_ParseTuple(args, "OOll:set_callback", &bufA, &format, &width, &height)){
+		if (!PyArg_ParseTuple(args, "OUll:set_callback", &bufA, &format, &width, &height)){
 			return NULL;
 		}
 		if (!PyByteArray_Check(bufA)){
@@ -346,13 +354,15 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 			return NULL;
 		}
 
-		if (!PyString_Check(format)){
-			PyErr_SetString(PyExc_TypeError, "Argument 2 must be a Python string object"); 
+
+		PyObject *pyBytesStr = PyUnicode_AsASCIIString((PyObject*)format);
+		if (!pyBytesStr){
+			PyErr_SetString(PyExc_TypeError, "Unknow buffer format");
 			return NULL;
-		}	
+		}
 
 	    //check string format here
-		if (!cimg->setupFormats(PyString_AsString(format))){
+		if (!cimg->setupFormats(PyBytes_AsString(pyBytesStr))){
 			PyErr_SetString(PyExc_TypeError, "Unknow buffer format");
 			return NULL;
 		}
@@ -369,7 +379,7 @@ static PyObject * pyImageSource_SetBuffers(pyImageSource *self, PyObject *args){
 
 		Py_XDECREF(self->formatString);
 		Py_INCREF(format);
-		self->formatString = format;
+		self->formatString = (PyObject*)format;
 
 		Py_XDECREF(self->bufferA);
 		Py_XDECREF(self->bufferB);
@@ -476,7 +486,7 @@ pyImageSource_CreateHotKey(pyImageSource *self, PyObject *args){
 	UINT cRet;
 	PyObject *pyRet;
 	cRet = OBSCreateHotkey(key, (OBSHOTKEYPROC)Hotkey, (UPARAM)callback);
-	pyRet = PyInt_FromLong(cRet);
+	pyRet = PyLong_FromLong(cRet);
 	Py_INCREF(callback);
 
 	
@@ -550,8 +560,7 @@ static PyMemberDef pyImageSource_members[] = {
 
 /*Python Type Object */
 static PyTypeObject pyImageSourceType = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.ImageSource",         /*tp_name*/
 	sizeof(pyImageSource),     /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

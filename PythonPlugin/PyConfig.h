@@ -42,7 +42,7 @@ typedef struct {
 static void
 pyConfig_dealloc(pyConfig* self)
 {
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*Parse arguments*/
@@ -80,8 +80,7 @@ static PyMemberDef pyConfig_members[] = {
 
 /*Python Type Object */
 static PyTypeObject pyConfigType = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.Config",         /*tp_name*/
 	sizeof(pyConfig),     /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

@@ -54,7 +54,7 @@ py_OBSGetScene(PyObject *self, PyObject *args){
 
 static PyObject *
 py_OBSGetAPIVersion(PyObject *self, PyObject *args){
-	return PyInt_FromLong(OBSGetAPIVersion());
+	return PyLong_FromLong(OBSGetAPIVersion());
 }
 
 
@@ -95,7 +95,7 @@ py_OBSGetOutputSize(PyObject *self, PyObject *args){
 static PyObject *
 py_OBSGetMaxFPS(PyObject *self, PyObject *args){
 	long maxfps = OBSGetMaxFPS();
-	PyObject *obj = PyInt_FromLong(maxfps);	
+	PyObject *obj = PyLong_FromLong(maxfps);	
 	return obj;
 }
 
@@ -103,7 +103,7 @@ py_OBSGetMaxFPS(PyObject *self, PyObject *args){
 static PyObject *
 py_OBSGetCaptureFPS(PyObject *self, PyObject *args){
 	long capfps = OBSGetCaptureFPS();
-	PyObject *obj = PyInt_FromLong(capfps);
+	PyObject *obj = PyLong_FromLong(capfps);
 	return obj;
 }
 
@@ -111,7 +111,7 @@ py_OBSGetCaptureFPS(PyObject *self, PyObject *args){
 static PyObject *
 py_OBSGetTotalFrames(PyObject *self, PyObject *args){
 	long totalFrames = OBSGetTotalFrames();
-	PyObject *obj = PyInt_FromLong(totalFrames);
+	PyObject *obj = PyLong_FromLong(totalFrames);
 	return obj;
 }
 
@@ -120,7 +120,7 @@ py_OBSGetTotalFrames(PyObject *self, PyObject *args){
 static PyObject *
 py_OBSGetFramesDropped(PyObject *self, PyObject *args){
 	long droppedFrames = OBSGetFramesDropped();
-	PyObject *obj = PyInt_FromLong(droppedFrames);
+	PyObject *obj = PyLong_FromLong(droppedFrames);
 	return obj;
 }
 
@@ -134,7 +134,7 @@ py_OBSGetLanguage(PyObject *self, PyObject *args){
 
 static PyObject *
 py_OBSGetMainWindow(PyObject *self, PyObject *args){
-	return  PyCObject_FromVoidPtr(OBSGetMainWindow(), NULL);	
+	return  PyLong_FromLong((long)OBSGetMainWindow());	
 }
 
 
@@ -154,14 +154,14 @@ py_OBSGetPluginDataPath(PyObject *self, PyObject *args){
 static PyObject *
 py_OBSGetTotalStreamTime(PyObject *self, PyObject *args){
 	long streamTime = OBSGetTotalStreamTime();
-	PyObject *obj = PyInt_FromLong(streamTime);
+	PyObject *obj = PyLong_FromLong(streamTime);
 	return obj;
 }
 
 
 static PyObject *
 py_OBSGetBytesPerSec(PyObject *self, PyObject *args){
-	PyObject *obj = PyInt_FromLong(OBSGetBytesPerSec());
+	PyObject *obj = PyLong_FromLong(OBSGetBytesPerSec());
 	return obj;
 }
 
@@ -206,15 +206,17 @@ py_OBSLog(PyObject *self, PyObject *args){
 		return NULL;
 	}
 
-	PyObject *str;
+	PyUnicodeObject *str;
 
-	if (!PyArg_ParseTuple(args, "O", &str)){
+	if (!PyArg_ParseTuple(args, "U", &str)){
 		return NULL;
 	}
+
 	wchar_t *wstr = pyObjectToWSTR(str);
 	if (wstr == NULL){
 		return NULL;
 	}
+
 	Log(TEXT("Python: %ls"),wstr);
 	delete [] wstr;
 	
@@ -267,7 +269,8 @@ py_OBSSetScene(PyObject *self, PyObject *args){
 		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
 		return NULL;
 	}
-	PyObject *name, *py_bPost;
+	PyUnicodeObject *name;
+	PyObject *py_bPost;
 
 	if (!PyArg_ParseTuple(args, "OO", &name, &py_bPost)){
 		return NULL;
@@ -479,9 +482,10 @@ py_OBSAddShutdownFunction(PyObject *self, PyObject *args){
 		return NULL;
 	}
 
-	PyObject *pyFunc,*pyStr;
+	PyObject *pyFunc;
+	PyUnicodeObject *pyStr;
 
-	if (!PyArg_ParseTuple(args, "OO", &pyFunc,&pyStr)){
+	if (!PyArg_ParseTuple(args, "OU", &pyFunc,&pyStr)){
 		return NULL;
 	}
 	PythonPlugin *pyPlug = PythonPlugin::instance;
@@ -565,7 +569,6 @@ initOBS(void)
 	PyObject *m =  Py_InitModule("OBS", pyOBS_methods);
 	if (m == NULL)
 		return;
-
 
 	if (PyType_Ready(&pyImageSourceType) < 0)
 		return;

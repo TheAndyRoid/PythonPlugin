@@ -27,25 +27,34 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 //Allocates memory that must be freed
 static wchar_t * pyObjectToWSTR(PyObject *str){
-	wchar_t *wstr = NULL;
-		
+	wchar_t *wstr = NULL;		
 	if (PyUnicode_Check(str)){
 		Py_ssize_t len = PyUnicode_GET_DATA_SIZE(str);
-		wstr = new  wchar_t[len];
+		wstr = new  wchar_t[len + 1];
+#if PY_MAJOR_VERSION >= 3
+		PyUnicode_AsWideChar((PyObject*)str, wstr, len);
+		wstr[len] = L'\0';
+#else
 		PyUnicode_AsWideChar((PyUnicodeObject*)str, wstr, len);
+		wstr[len] = L'\0';
+#endif
 		return wstr;
-	}
-	else if (PyString_Check(str)){
+#if PY_MAJOR_VERSION < 3
+	}else if (PyString_Check(str)){
 		char * cstr = PyString_AsString(str);
 		long len = PyString_Size(str) + 1;
 		wstr = new  wchar_t[len];
 		mbstowcs(&*wstr, cstr, len);
-		return wstr;
-	}
-	else{
-		//Not a string
+		return wstr;	
+#endif
+	}else{
 		return NULL;
 	}
+}
+
+
+static wchar_t * pyObjectToWSTR(PyUnicodeObject *str){
+	return pyObjectToWSTR((PyObject*)str);
 }
 
 

@@ -22,7 +22,7 @@ import OBS
 
 class ColourSquare(OBS.ImageSource):    
     def __init__(self,config):
-        OBS.Log("__init__")
+        OBS.Log(u"__init__")
     
         self.width = 300
         self.height = 300
@@ -56,7 +56,7 @@ class ColourSquare(OBS.ImageSource):
                 self.pixelbuffer[i+3] = newAlpha  
             
     def EndScene(self):
-        OBS.Log("endScene")
+        OBS.Log(u"endScene")
 
     def Render(self,pos,size):
         self.DrawSprite(0xffffffff,
@@ -87,11 +87,11 @@ class ColourSquare(OBS.ImageSource):
         self.BeginScene()
 
     def Tick(self,seconds):
-        print "tick"
+        print u"tick"
         pass
     
     def BeginScene(self):
-        self.SetBuffers(self.pixelbuffer,"BGRA",self.width,self.height)
+        self.SetBuffers(self.pixelbuffer,u"BGRA",self.width,self.height)
         
 
 

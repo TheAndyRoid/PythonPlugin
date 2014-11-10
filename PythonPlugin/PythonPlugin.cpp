@@ -53,10 +53,7 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 	else{
 		isMissingDataElement = false;
 	}
-
 	
-
-
 
 	//Get the plugin instance
 	PythonPlugin *pyPlug = PythonPlugin::instance;
@@ -321,8 +318,13 @@ PythonPlugin::PythonPlugin()
 
 	
 	/*Must set arguments for guis to work*/
+#if PY_MAJOR_VERSION >= 3
+	wchar_t *argv[] = { TEXT("OBS"), NULL };
+	int argc = sizeof(argv) / sizeof(wchar_t*) - 1;
+#else
 	char *argv[] = { "OBS", NULL };
 	int argc = sizeof(argv) / sizeof(char*) - 1;
+#endif
 	PySys_SetArgv(argc, argv);
 	
 

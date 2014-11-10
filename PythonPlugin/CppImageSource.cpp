@@ -159,7 +159,7 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	if (OBSModule == NULL){
 		Log(TEXT("OBSModule null"));
 	}
-	PyObject * vect2 = PyObject_GetAttr(OBSModule, PyString_FromString("Vect2"));
+	PyObject * vect2 = PyObject_GetAttr(OBSModule, PyUnicode_FromString("Vect2"));
 	if (vect2 == NULL){
 		Log(TEXT("vect2 null"));
 	}

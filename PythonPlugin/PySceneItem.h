@@ -55,7 +55,7 @@ static void
 pySceneItem_dealloc(PySceneItem* self)
 {
 	self->sceneItem = NULL;
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 
 }
 
@@ -200,7 +200,7 @@ static PyObject* pySceneItem_GetID(PySceneItem *self, PyObject *args){
 	}
 
 	UINT id = self->sceneItem->GetID();
-	return PyInt_FromLong(id);
+	return PyLong_FromLong(id);
 }
 static PyObject* pySceneItem_SetName(PySceneItem *self, PyObject *args){
 	if (!sceneItemExists(self)){
@@ -213,9 +213,9 @@ static PyObject* pySceneItem_SetName(PySceneItem *self, PyObject *args){
 		return NULL;
 	}
 	
-	PyObject *name;
+	PyUnicodeObject *name;
 
-	if (!PyArg_ParseTuple(args, "O", &name)){
+	if (!PyArg_ParseTuple(args, "U", &name)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
@@ -384,8 +384,7 @@ static PyMemberDef pySceneItem_members[] = {
 
 /*Python Type Object */
 static PyTypeObject pySceneItemType = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.ImageSource",         /*tp_name*/
 	sizeof(PySceneItem),     /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

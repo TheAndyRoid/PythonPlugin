@@ -42,7 +42,7 @@ PyVect4_dealloc(PyVect4Object* self)
 	Py_XDECREF(self->x);
 	Py_XDECREF(self->z);
 	Py_XDECREF(self->w);
-	self->ob_type->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
@@ -138,8 +138,7 @@ static PyMethodDef PyVect4_methods[] = {
 };
 
 static PyTypeObject PyVect4_Object = {
-	PyObject_HEAD_INIT(NULL)
-	0,                         /*ob_size*/
+	PyVarObject_HEAD_INIT(NULL, 0)
 	"OBS.Vect4",             /*tp_name*/
 	sizeof(PyVect4Object),             /*tp_basicsize*/
 	0,                         /*tp_itemsize*/

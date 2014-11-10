@@ -77,7 +77,7 @@ class gui:
             p = ast.parse(text)
             self.mainFileClasses = [ node.name for node in ast.walk(p) if isinstance(node, ast.ClassDef)]
         except:
-            print "Problem Loading File"
+            print ("Problem Loading File")
             self.mainFileClasses = []
         
         self.setMainComboArea()
@@ -119,7 +119,7 @@ class gui:
             p = ast.parse(text)
             self.GUIFileClasses = [ node.name for node in ast.walk(p) if isinstance(node, ast.ClassDef)]
         except:
-            print "Problem Loading File"
+            print ("Problem Loading File")
             self.GUIFileClasses = []
             
         self.setGUIComboArea()
@@ -145,10 +145,10 @@ class gui:
 
 
     def applySettings(self,event):
-        OBS.Log(str( self.mainFileSTR.get()))
-        OBS.Log(str(self.optionMainClass.get()))
-        OBS.Log(str(self.GUIFileSTR.get()))
-        OBS.Log(str(self.optionGUIClass.get()))
+        OBS.Log(self.mainFileSTR.get())
+        OBS.Log(unicode(self.optionMainClass.get(),"utf-8"))
+        OBS.Log(self.GUIFileSTR.get())
+        OBS.Log(unicode(self.optionGUIClass.get(),"utf-8"))
         self.save()
         self.closeGUI(event)
 
@@ -157,25 +157,25 @@ class gui:
         self.ret = True;
     
     def save(self):        
-        self.config.SetString("PythonMainFile",self.mainFileSTR.get())
-        self.config.SetString("PythonMainClass",self.optionMainClass.get())
-        self.config.SetString("PythonGUIFile",self.GUIFileSTR.get())
-        self.config.SetString("PythonGUIClass",self.optionGUIClass.get())
-        self.config.SetInt("Persistant",0)
-        self.config.SetInt("Background",0)
+        self.config.SetString(u"PythonMainFile",self.mainFileSTR.get())
+        self.config.SetString(u"PythonMainClass",unicode(self.optionMainClass.get(),"utf-8"))
+        self.config.SetString(u"PythonGUIFile",self.GUIFileSTR.get())
+        self.config.SetString(u"PythonGUIClass",unicode(self.optionGUIClass.get(),"utf-8"))
+        self.config.SetInt(u"Persistant",0)
+        self.config.SetInt(u"Background",0)
         
     def load(self):
-        self.mainFileSTR.set(self.config.GetString("PythonMainFile"))
+        self.mainFileSTR.set(self.config.GetString(u"PythonMainFile"))
         self.mainRead()
         try:
-            self.optionMainClass.set(self.config.GetString("PythonMainClass"))
+            self.optionMainClass.set(self.config.GetString(u"PythonMainClass"))
         except AttributeError:
             pass
         
-        self.GUIFileSTR.set(self.config.GetString("PythonGUIFile"))
+        self.GUIFileSTR.set(self.config.GetString(u"PythonGUIFile"))
         self.GUIRead()
         try:
-            self.optionGUIClass.set(self.config.GetString("PythonGUIClass"))
+            self.optionGUIClass.set(self.config.GetString(u"PythonGUIClass"))
         except AttributeError:
             pass        
         
@@ -190,9 +190,7 @@ class gui:
             pass
 
     def getHWNDS(self):
-        ctypes.pythonapi.PyCObject_AsVoidPtr.restype = ctypes.c_void_p
-        ctypes.pythonapi.PyCObject_AsVoidPtr.argtypes = [ctypes.py_object]
-        self.obshwnd = ctypes.pythonapi.PyCObject_AsVoidPtr(OBS.GetMainWindow())
+        self.obshwnd = OBS.GetMainWindow()
         self.hwndTkinter =  self.parent.winfo_id()
 
         
@@ -205,9 +203,9 @@ class gui:
 
 
         if((ctypes.windll.user32.GetKeyState(0x91) & 0x0001) != 0):
-            OBS.Log("lock on")
+            OBS.Log(u"lock on")
         else:
-            OBS.Log("lock off")
+            OBS.Log(u"lock off")
             
         ctypes.windll.user32.SetActiveWindow(self.hwndTkinter)
         ctypes.windll.user32.EnableWindow(self.obshwnd,False)
