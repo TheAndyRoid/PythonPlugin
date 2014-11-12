@@ -272,7 +272,7 @@ py_OBSSetScene(PyObject *self, PyObject *args){
 	PyUnicodeObject *name;
 	PyObject *py_bPost;
 
-	if (!PyArg_ParseTuple(args, "OO", &name, &py_bPost)){
+	if (!PyArg_ParseTuple(args, "UO", &name, &py_bPost)){
 		return NULL;
 	}
 	wchar_t *wname = pyObjectToWSTR(name);
