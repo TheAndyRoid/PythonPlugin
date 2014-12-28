@@ -1,7 +1,7 @@
 ; Script generated with the Venis Install Wizard
 
 ; Define your application name
-!define VERSION "0.2.8"
+!define VERSION "0.2.9"
 !define APPNAME "OBS Python Plugin"
 !define APPNAMEANDVERSION "${APPNAME} ${VERSION}"
 

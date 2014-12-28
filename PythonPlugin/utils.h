@@ -166,6 +166,26 @@ static void PythonRunString(String toRun){
 
 
 
+static void add_enum_to_dict(PyObject *tp_dict, char ** names){
+	int i = 0;
+	while (names[i] != NULL){
+		PyDict_SetItemString(tp_dict, names[i], PyLong_FromLong(i));
+		i++;
+	}
+
+}
+
+
+static void add_enum_to_module(PyObject *module, char ** names){
+	int i = 0;
+	while (names[i] != NULL){
+		PyModule_AddIntConstant(module, names[i], i);
+		i++;
+	}
+
+}
+
+
 static bool isPythonInPath(){
 	char* pypath = getenv("PYTHONPATH");
 	if (pypath == NULL){

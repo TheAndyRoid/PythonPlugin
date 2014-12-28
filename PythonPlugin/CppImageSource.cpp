@@ -214,12 +214,16 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 
 void *CppImageSource::getBackBuffer(){
-	if (pixelFront == pixelA && isDoubleBuffer == true){
-		return pixelB;
+	if (isDoubleBuffer == true){
+		if (pixelFront == pixelA){
+			return pixelB;
+		}
+		else{
+			return pixelA;
+		}
 	}else{
 		return pixelA;
-	}
-	
+	}	
 }
 
 void *CppImageSource::getFrontBuffer(){

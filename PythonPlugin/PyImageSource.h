@@ -135,14 +135,17 @@ static PyObject * pyImageSource_GetBackBuffer(pyImageSource *self){
 	if (self->cppImageSource->isDoubleBuffer){
 		a = PyByteArray_AsString(self->bufferA);
 		b = PyByteArray_AsString(self->bufferA);
-		if (backAddr = a){
+		if (backAddr == a){
+			Py_INCREF(self->bufferA);
 			return self->bufferA;
 		}
 		else{
+			Py_INCREF(self->bufferB);
 			return self->bufferB;
 		}
 	}
 	else {
+		Py_INCREF(self->bufferA);
 		return self->bufferA;	
 	}
 }
@@ -523,11 +526,136 @@ pyImageSource_DeleteHotKey(pyImageSource *self, PyObject *args){
 
 
 
+static PyObject *
+pyImageSource_EnableBlending(pyImageSource *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	
+	PyObject *py_bool;
+
+	if (!PyArg_ParseTuple(args, "O", &py_bool)){
+		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
+		return NULL;
+	}
+
+	if (!PyBool_Check(py_bool)){
+		PyErr_SetString(PyExc_TypeError, "Argument is not of type boolean");
+		return NULL;
+	}
+
+	if (PyObject_IsTrue(py_bool)){
+		EnableBlending(true);
+	}
+	else{
+		EnableBlending(false);
+	}
+	return Py_BuildValue("");
+}
+
+
+
+
+static PyObject *
+pyImageSource_BlendingFunction(pyImageSource *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 3){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+	
+	GSBlendType srcFactor, dstFactor;
+	float factor = 1.0f;
+	if (!PyArg_ParseTuple(args, "iif", &srcFactor, &dstFactor,&factor)){
+		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
+		return NULL;
+	}
+
+
+
+
+	BlendFunction(srcFactor, dstFactor, factor);
+	
+	return Py_BuildValue("");
+}
+
+
+
+static PyObject *
+pyImageSource_ClearTexture(pyImageSource *self, PyObject *args){
+	long argLength = PyTuple_Size(args);
+	if (argLength != 1){
+		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
+		return NULL;
+	}
+
+	PyObject *pixbuf;
+	if (!PyArg_ParseTuple(args, "O", &pixbuf)){
+		PyErr_SetString(PyExc_TypeError, "Wrong type of arguments");
+		return NULL;
+	}
+
+
+	if (!PyByteArray_Check(pixbuf)){
+		PyErr_SetString(PyExc_TypeError, "Not a bytearray");
+		return NULL;
+	}
+
+	void * pxdata = PyByteArray_AsString(pixbuf);
+
+	CppImageSource * imgSrc = self->cppImageSource;
+	Texture * tex = imgSrc->GetTexture();
+	if (!tex && imgSrc->getFrontBuffer() != NULL){
+		PyErr_SetString(PyExc_TypeError, "Missing texture");
+		return NULL;
+	}
+	
+	BYTE *lpData;
+	UINT pitch;
+	if (tex) {
+		tex->Map(lpData, pitch);
+		memset(lpData, 0, pitch * tex->Height());		
+		tex->Unmap();				
+	}
+
+	memset(pxdata, 0, PyByteArray_Size(pixbuf));
+
+	return Py_BuildValue("");
+}
+
+static int
+py_imagesource_init_type(PyObject* object)
+{
+	char* GSBlendType_names[] = {
+		"GS_BLEND_ZERO",
+		"GS_BLEND_ONE",
+		"GS_BLEND_SRCCOLOR",
+		"GS_BLEND_INVSRCCOLOR",
+		"GS_BLEND_SRCALPHA",
+		"GS_BLEND_INVSRCALPHA",
+		"GS_BLEND_DSTCOLOR",
+		"GS_BLEND_INVDSTCOLOR",
+		"GS_BLEND_DSTALPHA",
+		"GS_BLEND_INVDSTALPHA",
+		"GS_BLEND_FACTOR",
+		"GS_BLEND_INVFACTOR",
+		NULL };
+	add_enum_to_module(object, GSBlendType_names);
+	return 0;
+}
+
+
+
 /*Method Table*/
 static PyMethodDef pyImageSource_methods[] = {
 		{ "SetBuffers", (PyCFunction)pyImageSource_SetBuffers, METH_VARARGS, "Set which buffers to use for pixeldata and their format" },
 		{ "FlipBuffers", (PyCFunction)pyImageSource_FlipBuffers, METH_VARARGS, "Flips buffers in double buffer mode" },
 		{ "DrawSprite", (PyCFunction)pyImageSource_DrawSprite, METH_VARARGS, "Draws front buffer to screen" },
+		{ "EnableBlending", (PyCFunction)pyImageSource_EnableBlending, METH_VARARGS, "Enables Blending" },
+		{ "BlendingFunction", (PyCFunction)pyImageSource_BlendingFunction, METH_VARARGS, "Sets blending function Blending" },
+		{ "ClearTexture", (PyCFunction)pyImageSource_ClearTexture, METH_VARARGS, "Clears the supplied buffer" },
 		{ "Render", (PyCFunction)pyImageSource_Render, METH_VARARGS, "Function to be overidden" },
 		{ "UpdateSettings", (PyCFunction)pyImageSource_UpdateSettings, METH_VARARGS, "Function to be overidden" },
 		{ "BeginScene", (PyCFunction)pyImageSource_BeginScene, METH_VARARGS, "Function to be overidden" },

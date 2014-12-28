@@ -631,10 +631,14 @@ PyInit_OBS(void)
 	if (m == NULL)
 		INITERROR;
 
+	py_imagesource_init_type(m);
+
 	if (PyType_Ready(&pyImageSourceType) < 0)
 		INITERROR;
 	Py_INCREF(&pyImageSourceType);
 	PyModule_AddObject(m, "ImageSource", (PyObject *)&pyImageSourceType);
+
+	
 
 	if (PyType_Ready(&PyVect2_Object) < 0)
 		INITERROR;
