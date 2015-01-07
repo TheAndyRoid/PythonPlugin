@@ -68,11 +68,11 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 	PyObject *pName, *pModule, *pFunc;
 
 	if (isMissingDataElement){
-		moduleName = TEXT("DefaultGUI");
-		className = TEXT("gui");
+		moduleName = TEXT("ScriptManager");
+		className = TEXT("ScriptManager");
 	}
 	else{
-		file = dataElement->GetString(TEXT("PythonGUIFile"));
+		file = dataElement->GetString(TEXT("PythonFile"));
 		className = dataElement->GetString(TEXT("PythonGUIClass"));
 		moduleName = addToPythonPath(file);
 
@@ -150,10 +150,9 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 		// check if the required element now exist and restart gui
 		
 		//check if the elements have been added to config. if not then setup gui failed.
-		String log = dataElement->GetString(TEXT("PythonGUIFile"));
+		String log = dataElement->GetString(TEXT("PythonFile"));
 
-		if (!dataElement->GetString(TEXT("PythonGUIFile")) || !dataElement->GetString(TEXT("PythonGUIClass"))
-			|| !dataElement->GetString(TEXT("PythonMainFile")) || !dataElement->GetString(TEXT("PythonMainClass"))){
+		if (!dataElement->GetString(TEXT("PythonFile")) || !dataElement->GetString(TEXT("PythonGUIClass")) || !dataElement->GetString(TEXT("PythonPluginClass"))){
 			//User canceled
 			return false;
 		}
@@ -202,8 +201,8 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 	
 
 
-	file = data->GetString(TEXT("PythonMainFile"));
-	className = data->GetString(TEXT("PythonMainClass"));
+	file = data->GetString(TEXT("PythonFile"));
+	className = data->GetString(TEXT("PythonPluginClass"));
 
 	if (file == NULL || className == NULL){
 		PyGILState_Release(gstate);
