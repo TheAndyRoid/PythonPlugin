@@ -78,7 +78,7 @@ static PyObject * pyImageSource_new(PyTypeObject *type, PyObject *args, PyObject
 		
 		//Get the image source and set it 
 		if (pyPlug->tmpImgSrc == NULL){
-			Py_DECREF(self);
+			Py_XDECREF(self);
 			return NULL;
 		}
 		//Get the CppImage source from pyPlug

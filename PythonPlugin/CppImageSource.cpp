@@ -40,12 +40,9 @@ CppImageSource::CppImageSource(XElement *data)
 
 	
 	//Set a safe image size
-	imageSize = Vect2(0, 0);
+	imageSize = Vect2(500, 500);
 
-
-	pyImgSrc = NULL;
-	
-	
+	pyImgSrc = NULL;	
 	
 }
 
@@ -105,7 +102,7 @@ void CppImageSource::Tick(float seconds){
 
 	}
 	else{
-		pyTick = NULL;
+		Py_XDECREF(pyTick);
 		Log(TEXT("tick function not callable"));
 		PyGILState_Release(gstate);
 		return;
@@ -120,9 +117,9 @@ void CppImageSource::Tick(float seconds){
 		return;
 	}
 
-	Py_XDECREF(argList);
-	Py_XDECREF(pyTick);
-	Py_XDECREF(result);
+	Py_DECREF(argList);
+	Py_DECREF(pyTick);
+	Py_DECREF(result);
 
 
 	PyGILState_Release(gstate);
@@ -133,10 +130,10 @@ void CppImageSource::Tick(float seconds){
 
 void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	
-	renderSize.x = size.x;
-	renderSize.y = size.y;
+	renderSize.x = size.x;  //cx
+	renderSize.y = size.y;  //cy
 
-
+	
 
 
 	if (!texture) {
@@ -178,14 +175,14 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 	Py_DECREF(argList);
 	argList = Py_BuildValue("(dd)", pos.x, pos.y);
 	PyObject *pyPos = PyObject_CallObject(vect2, argList);
-	if (pySize == NULL){
+	if (pyPos == NULL){
 		Log(TEXT("obj null"));
 		PyGILState_Release(gstate);
 		
 		return;
 	}
 	Py_DECREF(argList);
-
+	Py_DECREF(vect2);
 
 	argList = Py_BuildValue("(OO)", pyPos, pySize);
 	PyObject *result = PyObject_CallObject(pyRender, argList);
@@ -197,13 +194,13 @@ void CppImageSource::Render(const Vect2 &pos, const Vect2 &size){
 
 	
 	
-	Py_XDECREF(OBSModule);
-	Py_XDECREF(pySize);
-	Py_XDECREF(pyPos);
-	Py_XDECREF(vect2);
-	Py_XDECREF(argList);
-	Py_XDECREF(result);
-	Py_XDECREF(pyRender);
+	Py_DECREF(OBSModule);
+	Py_DECREF(pySize);
+	Py_DECREF(pyPos);
+	
+	Py_DECREF(argList);
+	Py_DECREF(result);
+	Py_DECREF(pyRender);
 	
 
 	PyGILState_Release(gstate);
@@ -249,7 +246,8 @@ void CppImageSource::flipPixelBuffers(){
 
 
  Vect2 CppImageSource::GetSize() const{
-	return  imageSize;
+	//This is the size of the texture 
+	 return  imageSize;
 }
 
  int CppImageSource::getHeight(){
@@ -290,7 +288,9 @@ void CppImageSource::flipPixelBuffers(){
 
 
  Texture* CppImageSource::MakeTexture(){
-
+	 if (texture != NULL){
+		 delete texture;  //free memory
+	}
 	 texture = CreateTexture(imageSize.x, imageSize.y, texFormat, nullptr, FALSE, FALSE);
 	 return texture;
  }
@@ -303,7 +303,7 @@ void CppImageSource::flipPixelBuffers(){
 	 if (texture) {
 		 texture->Map(lpData, pitch);
 		 memset(lpData, 0, pitch * texture->Height());
-		 memset(pxdata, 0, (texture->Width() * 4) * texture->Height());
+		 memset(pxdata, 0, (imageSize.x * imgDepth) * imageSize.y);
 		 texture->Unmap();
 	 }
  }
@@ -329,7 +329,6 @@ void CppImageSource::flipPixelBuffers(){
 	 imageSize.x = width;
 	 imageSize.y = height;
 	 this->texture = MakeTexture();
-
  }
 
 
@@ -375,50 +374,7 @@ void CppImageSource::flipPixelBuffers(){
  }
 
  
- void CppImageSource::DrawSprite(Texture *texture, DWORD colour,
-	 float x, float y, float z,
-	 float x1, float y1, float z1,
-	 float x2, float y2, float z2,
-	 float x3, float y3, float z3){
  
-
-	 HANDLE hColor = GetCurrentPixelShader()->GetParameterByName(TEXT("outputColor"));
-	 GetCurrentPixelShader()->SetColor(hColor, colour);
-	 
-	
-
-
-	 VBData *data = new VBData;
-	 data->UVList.SetSize(1);
-	 data->VertList.SetSize(4);
-	 data->UVList[0].SetSize(4);
-
-	 VertexBuffer *vbuf = CreateVertexBuffer(data,false);
-
-	 VBData *mydata = vbuf->GetData();
-	 
-	 mydata->VertList[0].Set(x, y, z);
-	 mydata->VertList[1].Set(x1, y1,  z1);	
-	 mydata->VertList[2].Set(x2, y2,  z2);	
-	 mydata->VertList[3].Set(x3, y3,  z3);
-	 
- 
-	 float u = 0, v = 0, u2 = 1, v2 = 1;
-	 List<UVCoord> &coords = data->UVList[0];
-	 coords[0].Set(u, v);
-	 coords[1].Set(u, v2);
-	 coords[2].Set(u2, v);  //topl
-	 coords[3].Set(u2, v2);
- 
-	 vbuf->FlushBuffers();
-	 LoadVertexBuffer(vbuf);
-	 LoadTexture(texture);
-	 Draw(GS_TRIANGLESTRIP);
-
-	 delete vbuf;
- }
-
-
  void CppImageSource::BeginScene(){ 
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
@@ -458,11 +414,13 @@ void CppImageSource::flipPixelBuffers(){
  }
 
  void CppImageSource::UpdateSettings(){
+	 
 	 PyGILState_STATE gstate;
 	 gstate = PyGILState_Ensure();
 	 CallPythonFunction("UpdateSettings");
 	 PyGILState_Release(gstate);
-
+	 
+	 
  }
 
 
@@ -478,7 +436,6 @@ void CppImageSource::flipPixelBuffers(){
 	 }
 	 else{
 		 Py_XDECREF(pyFunc);
-		 pyFunc = NULL;
 		 Log(TEXT("%s not callable",funcName));
 		 return;
 	 }
@@ -489,12 +446,13 @@ void CppImageSource::flipPixelBuffers(){
 	 }
 
 	 PyObject *argList = Py_BuildValue("()");
-	 PyObject_CallObject(pyFunc, argList);
+	 PyObject *ret = PyObject_CallObject(pyFunc, argList);
 
 	 pyHasError();
-	 Py_XDECREF(argList);
-	 Py_XDECREF(pyFunc);
-	 Py_XDECREF(OBSModule);
+	 Py_DECREF(ret);
+	 Py_DECREF(argList);	 
+	 Py_DECREF(OBSModule);
+	 Py_DECREF(pyFunc);
 	 
 
 	 

@@ -104,7 +104,7 @@ static bool pyHasError(){
 static String addToPythonPath(String cstr){
 	//make sure that sys is imported
 	PyRun_SimpleString("import sys");
-	PyObject *path = PySys_GetObject("path");
+	PyObject *path = PySys_GetObject("path"); //borrowed
 
 	//convert to a constant seperator
 	cstr = cstr.FindReplace(TEXT("\\"), TEXT("/"));

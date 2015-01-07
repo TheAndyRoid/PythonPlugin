@@ -39,15 +39,17 @@ PythonPlugin *PythonPlugin::instance = NULL;
 bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 {
 
+	
 	String file;
 	String className;
 	String moduleName;
 	Log(TEXT("Python Source Configure"));
 	XElement *dataElement = element->GetElement(TEXT("data"));
 
+	
 
 	bool isMissingDataElement = true;
-	if (isMissingDataElement = !dataElement) {
+	if (!dataElement) {
 		dataElement = element->CreateElement(TEXT("data"));
 	}
 	else{
@@ -68,7 +70,6 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 	if (isMissingDataElement){
 		moduleName = TEXT("DefaultGUI");
 		className = TEXT("gui");
-
 	}
 	else{
 		file = dataElement->GetString(TEXT("PythonGUIFile"));
@@ -83,9 +84,9 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 	pyHasError();
 
 	pName = CTSTRtoPyUnicode(moduleName);
-	PyObject *dict = PyImport_GetModuleDict();
+	PyObject *dict = PyImport_GetModuleDict();//borrowed ref
 	if (PyDict_Contains(dict, pName) && reload){ //make a debug option to reload source	
-		pModule = PyDict_GetItem(dict, pName);
+		pModule = PyDict_GetItem(dict, pName); //borrowed ref
 		pModule = PyImport_ReloadModule(pModule);
 		pyHasError();
 	}
@@ -93,26 +94,27 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 		pModule = PyImport_Import(pName);
 		pyHasError();
 	}
-
+	
 
 	
 	if (pyHasError()){
+		Py_XDECREF(pModule);
 		Py_XDECREF(pName);
 		return false;
 	}
 
 
 	if (pModule != NULL) {
-		pFunc = PyObject_GetAttr(pModule, CTSTRtoPyUnicode(className));
+		pFunc = PyObject_GetAttr(pModule, CTSTRtoPyUnicode(className)); 
 
 		if (pFunc && PyCallable_Check(pFunc)) {
-			PyObject *argList = Py_BuildValue("");
-			PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
-			Py_XDECREF(argList);
+
+			PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);			
 			((PyXElement*)pyConfig)->element = dataElement;
 
-			argList = Py_BuildValue("(O)", pyConfig);
-			PyObject *ret = PyObject_CallObject(pFunc, argList);			
+			PyObject *argList = Py_BuildValue("(O)", pyConfig);
+			PyObject *ret = PyObject_CallObject(pFunc, argList);
+			Py_DECREF(argList);
 
 			if (pyHasError()){
 				Py_XDECREF(pModule);
@@ -121,8 +123,8 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 				PyGILState_Release(gstate);
 				return false;
 			}
-			Py_XDECREF(pyConfig);
-
+			Py_DECREF(pyConfig);
+			Py_DECREF(ret);
 
 		}
 		else {
@@ -142,6 +144,7 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 
 	PyGILState_Release(gstate);
 
+	
 	if (isMissingDataElement){
 		//The setup gui has run now run the specified gui
 		// check if the required element now exist and restart gui
@@ -241,8 +244,9 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 			//pass in config
 			PyObject *argList = Py_BuildValue("");
 			PyObject *pyConfig = PyObject_CallObject((PyObject*)&PyXElement_Object, NULL);
-			Py_XDECREF(argList);
+			
 			((PyXElement*)pyConfig)->element = data;
+			Py_DECREF(argList);
 			argList = Py_BuildValue("(O)",pyConfig);
 			pyImgSrc = (pyImageSource*)PyObject_CallObject(pFunc, argList);
 			
@@ -257,7 +261,8 @@ ImageSource* STDCALL CreatePythonSource(XElement *data)
 				pyPlug->tmpImgSrc = NULL;
 				pyObjectCreated = true;
 			}
-			Py_XDECREF(argList);
+			Py_DECREF(argList);
+			Py_XDECREF(pyConfig);
 
 		}
 		else {			
@@ -345,6 +350,7 @@ PythonPlugin::PythonPlugin()
 
 
 
+	PyImport_ImportModule("OBS");
 
 	PythonRunString(String("import sys,os"));
 	
@@ -361,6 +367,7 @@ PythonPlugin::PythonPlugin()
 	PythonRunString(String("sys.stderr = open('") + path + String("/stdErr.txt','w',0)"));
 #endif
 	PythonRunString(String("print('Python ' + sys.version)"));
+
 
 	pyHasError();
 	//Release the GIL	

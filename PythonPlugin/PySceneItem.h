@@ -385,7 +385,7 @@ static PyMemberDef pySceneItem_members[] = {
 /*Python Type Object */
 static PyTypeObject pySceneItemType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"OBS.ImageSource",         /*tp_name*/
+	"OBS.SceneItem",         /*tp_name*/
 	sizeof(PySceneItem),     /*tp_basicsize*/
 	0,                         /*tp_itemsize*/
 	(destructor)pySceneItem_dealloc, /*tp_dealloc*/
