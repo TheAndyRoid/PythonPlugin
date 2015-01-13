@@ -81,10 +81,10 @@ class ColourSquare(OBS.ImageSource):
             self.ChangeAlpha(-10)
             
     def GlobalSourceLeaveScene(self):
-        self.EndScene()
+        pass
         
     def GlobalSourceEnterScene(self):
-        self.BeginScene()
+        pass
 
     def Tick(self,seconds):
         print (u"tick")
@@ -96,6 +96,17 @@ class ColourSquare(OBS.ImageSource):
 
 
 
+
+class gui:
+    def __init__(self,config):
+        defaultWidth = 300
+        defaultHeight = 300
+        parent = config.GetParent()
+        
+        #you are expected to reset the width and height
+        #to the render size for scaling to work after properties
+        parent.SetFloat("cx",defaultWidth)
+        parent.SetFloat("cy",defaultHeight)
 
 
 

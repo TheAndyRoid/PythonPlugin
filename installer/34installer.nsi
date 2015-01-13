@@ -1,13 +1,14 @@
 ; Script generated with the Venis Install Wizard
 
 ; Define your application name
-!define VERSION "0.2.9"
+!define VERSION "0.2.10"
 !define APPNAME "OBS Python Plugin"
 !define APPNAMEANDVERSION "${APPNAME} ${VERSION}"
 
 !define DLLDIR "$PROGRAMFILES32\OBS\plugins"
 !define UNINSTALLDIR "$PROGRAMFILES32\OBS\plugins\PythonPlugin"
 !define SCRIPTSDIR "$APPDATA\OBS\pluginData\Python"
+!define SCRIPTSEXAMPLEDIR "$APPDATA\OBS\pluginData\Python\Examples"
 
 ; Main Install settings
 Name "${APPNAMEANDVERSION}"
@@ -46,8 +47,15 @@ Section "OBS Python Plugin" Section1
 	;Copy Example Script
 	
 	SetOutPath "${SCRIPTSDIR}\"
+	File "..\PythonPlugin\ScriptManager.py"	
+	
+	
+	
+	SetOutPath "${SCRIPTSEXAMPLEDIR}\"
 	File "..\ExampleScripts\ColourSquare.py"
-	File "..\PythonPlugin\DefaultGUI.py"	
+	File "..\ExampleScripts\DateTime.py"
+	
+	
 	
 	;Copy Unistaller	
 	
