@@ -272,6 +272,16 @@ static PyObject* pySceneItem_Update(PySceneItem *self, PyObject *args){
 	self->sceneItem->Update();
 	return Py_BuildValue("");
 }
+
+static PyObject* pySceneItem_UpdateSettings(PySceneItem *self, PyObject *args){
+	if (!sceneItemExists(self)){
+		return NULL;
+	}
+
+	self->sceneItem->GetSource()->UpdateSettings();
+	return Py_BuildValue("");
+}
+
 static PyObject* pySceneItem_MoveUp(PySceneItem *self, PyObject *args){
 	if (!sceneItemExists(self)){
 		return NULL;
@@ -368,6 +378,7 @@ static PyMethodDef pySceneItem_methods[] = {
 		{ "SetRender", (PyCFunction)pySceneItem_SetRender, METH_VARARGS, "SetRender" },
 		{ "GetCrop", (PyCFunction)pySceneItem_GetCrop, METH_VARARGS, "GetCrop" },
 		{ "Update", (PyCFunction)pySceneItem_Update, METH_VARARGS, "Update" },
+		{ "UpdateSettings", (PyCFunction)pySceneItem_UpdateSettings, METH_VARARGS, "UpdateSettings" },
 		{ "MoveUp", (PyCFunction)pySceneItem_MoveUp, METH_VARARGS, "MoveUp" },
 		{ "MoveDown", (PyCFunction)pySceneItem_MoveDown, METH_VARARGS, "MoveDown" },
 		{ "MoveToTop", (PyCFunction)pySceneItem_MoveToTop, METH_VARARGS, "MoveToTop" },

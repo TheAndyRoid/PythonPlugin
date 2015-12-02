@@ -404,16 +404,33 @@ static PyObject * pyImageSource_CopyToBackBuffer(pyImageSource *self, PyObject *
 		PyErr_SetString(PyExc_TypeError, "Wrong number of arguments");
 		return NULL;
 	}
-	unsigned long addr;
-	if (!PyArg_ParseTuple(args, "I", &addr)){
+	void *addr;
+	PyObject *object;
+	if (!PyArg_ParseTuple(args, "O", &object)){
 		return NULL;
 	}
+
+	if (PyByteArray_Check(object)){
+		addr = PyByteArray_AS_STRING(object);
+	}
+	else if (PyBytes_Check(object)){
+		addr = (void*)PyBytes_AsString(object);
+	}
+	else if (PyLong_Check(object)){
+		addr = (void*)PyLong_AsUnsignedLong(object);
+	}
+	else{
+		PyErr_SetString(PyExc_TypeError, "Not a memory address, bytearray or bytes");
+		return NULL;
+	}
+
+
 	if (self->cppImageSource){
 		void * backBuf = self->cppImageSource->getBackBuffer();
 		int width = self->cppImageSource->getWidth();
 		int height = self->cppImageSource->getHeight();
 		int depth = self->cppImageSource->getBytesPerPixel();
-		memcpy(backBuf, (void*)addr, width*height*depth);
+		memcpy(backBuf, addr, width*height*depth);
 	}
 	return Py_BuildValue("");
 

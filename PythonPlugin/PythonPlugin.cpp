@@ -132,7 +132,7 @@ bool STDCALL ConfigurePythonSource(XElement *element, bool bCreating)
 
 		}
 		
-		Py_DECREF(pFunc);
+		Py_XDECREF(pFunc);
 	}
 	else {
 		PyErr_Print();

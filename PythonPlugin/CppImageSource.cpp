@@ -449,10 +449,10 @@ void CppImageSource::flipPixelBuffers(){
 	 PyObject *ret = PyObject_CallObject(pyFunc, argList);
 
 	 pyHasError();
-	 Py_DECREF(ret);
-	 Py_DECREF(argList);	 
-	 Py_DECREF(OBSModule);
-	 Py_DECREF(pyFunc);
+	 Py_XDECREF(ret);
+	 Py_XDECREF(argList);	 
+	 Py_XDECREF(OBSModule);
+	 Py_XDECREF(pyFunc);
 	 
 
 	 
