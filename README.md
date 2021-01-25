@@ -1,3 +1,5 @@
+## This is very depricated. It was written for the originals OBS (pre stuido) and is no longer usable.
+
 This OBS Plugin wraps the OBSApi in Python and provides an embedded Python environment for development of custom Python sources.
 
 This allows you to create custom sources using easily editable Python scripts.
